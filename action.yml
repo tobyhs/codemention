@@ -1,11 +1,11 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: codemention
+description: Mentions people who subscribe to file changes on pull requests
+author: Toby Hsieh
 inputs:
   milliseconds: # change this
     required: true
     description: 'input description here'
     default: 'default value if applicable'
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: node18
+  main: dist/index.js
