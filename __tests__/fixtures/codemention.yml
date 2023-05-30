@@ -1,0 +1,7 @@
+rules:
+  - patterns: ['config/**']
+    mentions: ['sysadmin']
+  - patterns: ['db/migrate/**']
+    mentions: ['cto', 'dba']
+  - patterns: ['.github/**', 'spec/*.rb']
+    mentions: ['ci']
