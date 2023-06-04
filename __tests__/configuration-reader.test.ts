@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it} from '@jest/globals'
+import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
-import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/parameters-and-response-types.d'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import {EqualMatchingInjectorConfig, Mock} from 'moq.ts'
