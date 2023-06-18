@@ -31,10 +31,6 @@ export default class CommentUpserter {
     pullNumber: number,
     rules: MentionRule[]
   ): Promise<void> {
-    if (rules.length === 0) {
-      return
-    }
-
     const issuesApi = this.octokitRest.issues
     const listResponse = await issuesApi.listComments({
       owner: repo.owner,
@@ -47,12 +43,14 @@ export default class CommentUpserter {
     const commentBody = this.createCommentBody(rules)
 
     if (existingComment === undefined) {
-      await issuesApi.createComment({
-        owner: repo.owner,
-        repo: repo.repo,
-        issue_number: pullNumber,
-        body: commentBody
-      })
+      if (rules.length > 0) {
+        await issuesApi.createComment({
+          owner: repo.owner,
+          repo: repo.repo,
+          issue_number: pullNumber,
+          body: commentBody
+        })
+      }
     } else if (existingComment.body !== commentBody) {
       await issuesApi.updateComment({
         owner: repo.owner,

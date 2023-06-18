@@ -24,20 +24,6 @@ describe('CommentUpserter', () => {
     const repo: Repo = {owner: 'tobyhs', repo: 'codemention'}
     const pullNumber = 17
 
-    describe('when there are no applicable mention rules', () => {
-      it('does not insert or update a comment', async () => {
-        await upserter.upsert(repo, pullNumber, [])
-        issuesMock.verify(
-          instance => instance.createComment(It.IsAny()),
-          Times.Never()
-        )
-        issuesMock.verify(
-          instance => instance.updateComment(It.IsAny()),
-          Times.Never()
-        )
-      })
-    })
-
     const rules = [
       {
         patterns: ['db/migrate/**'],
@@ -69,9 +55,25 @@ describe('CommentUpserter', () => {
     }
 
     describe('when a codemention comment does not exist', () => {
-      it('creates a comment', async () => {
+      beforeEach(() => {
         stubListComments(['First', 'Second'])
+      })
 
+      describe('and there are no applicable mention rules', () => {
+        it('does not insert or update a comment', async () => {
+          await upserter.upsert(repo, pullNumber, [])
+          issuesMock.verify(
+            instance => instance.createComment(It.IsAny()),
+            Times.Never()
+          )
+          issuesMock.verify(
+            instance => instance.updateComment(It.IsAny()),
+            Times.Never()
+          )
+        })
+      })
+
+      it('creates a comment', async () => {
         issuesMock
           .setup(instance => instance.createComment(It.IsAny()))
           .returnsAsync(
