@@ -5,12 +5,12 @@ import * as fs from 'fs'
 import {EqualMatchingInjectorConfig, Mock} from 'moq.ts'
 import * as path from 'path'
 
-import FilesChangedReader from '../src/files-changed-reader'
+import {FilesChangedReaderImpl} from '../src/files-changed-reader'
 import {Repo} from '../src/github-types'
 
-describe('FilesChangedReader', () => {
+describe('FilesChangedReaderImpl', () => {
   let pullsMock: Mock<RestEndpointMethods['pulls']>
-  let reader: FilesChangedReader
+  let reader: FilesChangedReaderImpl
 
   beforeEach(() => {
     pullsMock = new Mock<RestEndpointMethods['pulls']>({
@@ -19,7 +19,7 @@ describe('FilesChangedReader', () => {
     const octokitRestMock = new Mock<RestEndpointMethods>()
       .setup(instance => instance.pulls)
       .returns(pullsMock.object())
-    reader = new FilesChangedReader(octokitRestMock.object())
+    reader = new FilesChangedReaderImpl(octokitRestMock.object())
   })
 
   describe('.read', () => {

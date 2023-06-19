@@ -6,12 +6,7 @@ import {Repo} from './github-types'
 /**
  * @see {@link read}
  */
-export default class FilesChangedReader {
-  /**
-   * @param octokitRest - GitHub REST API client
-   */
-  constructor(private readonly octokitRest: RestEndpointMethods) {}
-
+export interface FilesChangedReader {
   /**
    * Lists the files changed in a pull request
    *
@@ -19,6 +14,16 @@ export default class FilesChangedReader {
    * @param pullNumber - number that identifies the pull request
    * @returns the files changed
    */
+  read(repo: Repo, pullNumber: number): Promise<string[]>
+}
+
+export class FilesChangedReaderImpl implements FilesChangedReader {
+  /**
+   * @param octokitRest - GitHub REST API client
+   */
+  constructor(private readonly octokitRest: RestEndpointMethods) {}
+
+  /** @override */
   async read(repo: Repo, pullNumber: number): Promise<string[]> {
     const response = await this.octokitRest.pulls.get({
       owner: repo.owner,

@@ -7,12 +7,12 @@ import {EqualMatchingInjectorConfig, Mock} from 'moq.ts'
 import * as path from 'path'
 
 import {Configuration} from '../src/configuration'
-import ConfigurationReader from '../src/configuration-reader'
+import {ConfigurationReaderImpl} from '../src/configuration-reader'
 import {Repo} from '../src/github-types'
 
-describe('ConfigurationReader', () => {
+describe('ConfigurationReaderImpl', () => {
   let reposMock: Mock<RestEndpointMethods['repos']>
-  let reader: ConfigurationReader
+  let reader: ConfigurationReaderImpl
 
   beforeEach(() => {
     reposMock = new Mock<RestEndpointMethods['repos']>({
@@ -21,7 +21,7 @@ describe('ConfigurationReader', () => {
     const octokitRestMock = new Mock<RestEndpointMethods>()
       .setup(instance => instance.repos)
       .returns(reposMock.object())
-    reader = new ConfigurationReader(octokitRestMock.object())
+    reader = new ConfigurationReaderImpl(octokitRestMock.object())
   })
 
   describe('.read', () => {

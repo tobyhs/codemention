@@ -13,12 +13,7 @@ export const HEADER = [
 /**
  * @see {@link upsert}
  */
-export default class CommentUpserter {
-  /**
-   * @param octokitRest - GitHub REST API client
-   */
-  constructor(private readonly octokitRest: RestEndpointMethods) {}
-
+export interface CommentUpserter {
   /**
    * Inserts or updates a pull request comment that mentions users/teams.
    *
@@ -26,6 +21,16 @@ export default class CommentUpserter {
    * @param pullNumber - number that identifies the pull request
    * @param rules - mention rules to use in the comment
    */
+  upsert(repo: Repo, pullNumber: number, rules: MentionRule[]): Promise<void>
+}
+
+export class CommentUpserterImpl implements CommentUpserter {
+  /**
+   * @param octokitRest - GitHub REST API client
+   */
+  constructor(private readonly octokitRest: RestEndpointMethods) {}
+
+  /** @override */
   async upsert(
     repo: Repo,
     pullNumber: number,

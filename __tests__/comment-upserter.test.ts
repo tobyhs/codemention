@@ -3,12 +3,12 @@ import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import {EqualMatchingInjectorConfig, It, Mock, Times} from 'moq.ts'
 
-import CommentUpserter, {HEADER} from '../src/comment-upserter'
+import {CommentUpserterImpl, HEADER} from '../src/comment-upserter'
 import {Repo} from '../src/github-types'
 
-describe('CommentUpserter', () => {
+describe('CommentUpserterImpl', () => {
   let issuesMock: Mock<RestEndpointMethods['issues']>
-  let upserter: CommentUpserter
+  let upserter: CommentUpserterImpl
 
   beforeEach(() => {
     issuesMock = new Mock<RestEndpointMethods['issues']>({
@@ -17,7 +17,7 @@ describe('CommentUpserter', () => {
     const octokitRestMock = new Mock<RestEndpointMethods>()
       .setup(instance => instance.issues)
       .returns(issuesMock.object())
-    upserter = new CommentUpserter(octokitRestMock.object())
+    upserter = new CommentUpserterImpl(octokitRestMock.object())
   })
 
   describe('.upsert', () => {

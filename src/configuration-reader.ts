@@ -7,12 +7,7 @@ import {Repo} from './github-types'
 /**
  * @see {@link read}
  */
-export default class ConfigurationReader {
-  /**
-   * @param octokitRest - GitHub REST API client
-   */
-  constructor(private readonly octokitRest: RestEndpointMethods) {}
-
+export interface ConfigurationReader {
   /**
    * Reads configuration from the given repo's .github/codemention.yml
    *
@@ -20,6 +15,16 @@ export default class ConfigurationReader {
    * @param ref - branch/commit to read configuration from
    * @returns configuration
    */
+  read(repo: Repo, ref: string): Promise<Configuration>
+}
+
+export class ConfigurationReaderImpl implements ConfigurationReader {
+  /**
+   * @param octokitRest - GitHub REST API client
+   */
+  constructor(private readonly octokitRest: RestEndpointMethods) {}
+
+  /** @override */
   async read(repo: Repo, ref: string): Promise<Configuration> {
     const {data} = await this.octokitRest.repos.getContent({
       owner: repo.owner,
