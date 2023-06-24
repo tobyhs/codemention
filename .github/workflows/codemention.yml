@@ -1,0 +1,18 @@
+name: codemention
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+jobs:
+  codemention:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: ./
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
