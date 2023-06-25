@@ -30,6 +30,9 @@ export default class Runner {
     const {repo} = context
     const event = context.payload as PullRequestEvent
     const pullRequest = event.pull_request
+    if (pullRequest.draft) {
+      return
+    }
 
     const configuration = await this.configurationReader.read(
       repo,
