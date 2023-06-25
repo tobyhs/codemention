@@ -1,8 +1,11 @@
 const child_process = require('child_process');
+const process = require('process');
 
-child_process.spawnSync(
+process.chdir(__dirname);
+
+child_process.execSync(
   'npm install && npm run build',
-  {shell: true, stdio: ['inherit', 'inherit', 'inherit']}
+  {stdio: ['inherit', 'inherit', 'inherit']}
 )
 
 require('./lib/main')
