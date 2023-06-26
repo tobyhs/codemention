@@ -4,4 +4,40 @@
 
 # CodeMention
 
-In-progress GitHub Action similar to https://github.com/sourcegraph/codenotify except that it will use GitHub's REST API to fetch the pull request diff instead of cloning the repo.
+CodeMention is a GitHub Action that mentions users and teams who subscribe to certain file changes on pull requests.
+
+This is similar to [Codenotify](https://github.com/sourcegraph/codenotify), but this retrieves the diff via GitHub's REST API instead of using [actions/checkout](https://github.com/actions/checkout) to clone the repo.
+
+## Usage
+
+To use this GitHub Action, add a `.github/codemention.yml` file to your repo that contains mentions/notifications rules.
+An example looks like:
+```yaml
+rules:
+  - patterns: ['config/**']
+    mentions: ['sysadmin']
+  - patterns: ['db/migrate/**']
+    mentions: ['cto', 'dba']
+  - patterns: ['.github/**', 'spec/*.rb']
+    mentions: ['ci']
+```
+
+Add a `.github/workflows/codemention.yml` file to your repo with the following:
+```yaml
+name: codemention
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, ready_for_review]
+
+jobs:
+  codemention:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: tobyhs/codemention@v1
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+```
