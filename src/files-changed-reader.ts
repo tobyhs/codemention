@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import parseDiff from 'parse-diff'
 
@@ -44,6 +45,8 @@ export class FilesChangedReaderImpl implements FilesChangedReader {
       }
     }
     filesChanged.delete('/dev/null')
-    return [...filesChanged]
+    const result = [...filesChanged]
+    core.debug(`Files changed: ${result}`)
+    return result
   }
 }

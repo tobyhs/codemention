@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import {Context} from '@actions/github/lib/context'
 import {PullRequestEvent} from '@octokit/webhooks-types/schema.d'
 import micromatch from 'micromatch'
@@ -31,6 +32,7 @@ export default class Runner {
     const event = context.payload as PullRequestEvent
     const pullRequest = event.pull_request
     if (pullRequest.draft) {
+      core.debug('Skipping draft pull request')
       return
     }
 

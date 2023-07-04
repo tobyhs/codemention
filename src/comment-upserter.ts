@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 
 import {MentionRule} from './configuration'
@@ -49,20 +50,26 @@ export class CommentUpserterImpl implements CommentUpserter {
 
     if (existingComment === undefined) {
       if (rules.length > 0) {
+        core.info('Creating a pull request comment')
         await issuesApi.createComment({
           owner: repo.owner,
           repo: repo.repo,
           issue_number: pullNumber,
           body: commentBody
         })
+      } else {
+        core.info('Not creating a pull request comment. No rules matched.')
       }
     } else if (existingComment.body !== commentBody) {
+      core.info('Updating pull request comment')
       await issuesApi.updateComment({
         owner: repo.owner,
         repo: repo.repo,
         comment_id: existingComment.id,
         body: commentBody
       })
+    } else {
+      core.info('Not updating pull request comment. Comment body matched.')
     }
   }
 

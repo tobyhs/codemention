@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import * as yaml from 'js-yaml'
 
@@ -26,6 +27,7 @@ export class ConfigurationReaderImpl implements ConfigurationReader {
 
   /** @override */
   async read(repo: Repo, ref: string): Promise<Configuration> {
+    core.debug(`Reading codemention.yml on ${ref}`)
     const {data} = await this.octokitRest.repos.getContent({
       owner: repo.owner,
       repo: repo.repo,
