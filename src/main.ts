@@ -6,7 +6,7 @@ import {ConfigurationReaderImpl} from './configuration-reader'
 import {FilesChangedReaderImpl} from './files-changed-reader'
 import Runner from './runner'
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
   try {
     const githubToken = core.getInput('githubToken')
     const octokitRest = github.getOctokit(githubToken).rest
@@ -21,8 +21,6 @@ async function run(): Promise<void> {
     )
     runner.run(github.context)
   } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+    core.setFailed(`${error}`)
   }
 }
-
-run()
