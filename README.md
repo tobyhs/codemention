@@ -5,6 +5,7 @@
 # CodeMention
 
 CodeMention is a GitHub Action that mentions users and teams who subscribe to certain file changes on pull requests.
+See in pull requests in the [codemention-test repo](https://github.com/tobyhs/codemention-test/pulls?q=is%3Apr) for examples of how this looks like.
 
 This is similar to [Codenotify](https://github.com/sourcegraph/codenotify), but this retrieves the diff via GitHub's REST API instead of using [actions/checkout](https://github.com/actions/checkout) to clone the repo.
 
