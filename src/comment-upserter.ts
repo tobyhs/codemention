@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
+import markdownEscape from 'markdown-escape'
 
 import {MentionRule} from './configuration'
 import {Repo} from './github-types'
@@ -80,7 +81,9 @@ export class CommentUpserterImpl implements CommentUpserter {
   private createCommentBody(rules: MentionRule[]): string {
     const body = rules
       .map(rule => {
-        const patterns = rule.patterns.join('<br>')
+        const patterns = rule.patterns
+          .map(pattern => markdownEscape(pattern, ['slashes']))
+          .join('<br>')
         const mentions = rule.mentions.map(name => `@${name}`).join(', ')
         return `| ${patterns} | ${mentions} |`
       })

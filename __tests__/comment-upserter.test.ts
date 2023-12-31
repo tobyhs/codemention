@@ -38,8 +38,8 @@ describe('CommentUpserterImpl', () => {
     const commentBody =
       HEADER +
       [
-        '| db/migrate/** | @cto, @dba |',
-        '| .github/**<br>spec/*.rb | @ci |'
+        '| db/migrate/\\*\\* | @cto, @dba |',
+        '| .github/\\*\\*<br>spec/\\*.rb | @ci |'
       ].join('\n')
 
     const stubListComments = (comments: string[]): void => {
