@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
-import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
-import parseDiff from 'parse-diff'
+import {GitHub} from '@actions/github/lib/utils'
 
 import {Repo} from './github-types'
 
@@ -20,33 +19,23 @@ export interface FilesChangedReader {
 
 export class FilesChangedReaderImpl implements FilesChangedReader {
   /**
-   * @param octokitRest - GitHub REST API client
+   * @param octokit - GitHub API client
    */
-  constructor(private readonly octokitRest: RestEndpointMethods) {}
+  constructor(private readonly octokit: InstanceType<typeof GitHub>) {}
 
   /** @override */
   async read(repo: Repo, pullNumber: number): Promise<string[]> {
-    const response = await this.octokitRest.pulls.get({
-      owner: repo.owner,
-      repo: repo.repo,
-      pull_number: pullNumber,
-      mediaType: {format: 'diff'}
-    })
-    const diff = response.data as unknown as string
-    const files = parseDiff(diff)
-
-    const filesChanged = new Set<string>()
-    for (const file of files) {
-      if (file.from !== undefined) {
-        filesChanged.add(file.from)
-      }
-      if (file.to !== undefined) {
-        filesChanged.add(file.to)
-      }
-    }
-    filesChanged.delete('/dev/null')
-    const result = [...filesChanged]
-    core.debug(`Files changed: ${result}`)
-    return result
+    const filesChanged = await this.octokit.paginate(
+      this.octokit.rest.pulls.listFiles,
+      {
+        owner: repo.owner,
+        repo: repo.repo,
+        pull_number: pullNumber,
+        per_page: 100
+      },
+      response => response.data.map(file => file.filename)
+    )
+    core.debug(`Files changed: ${filesChanged}`)
+    return filesChanged
   }
 }

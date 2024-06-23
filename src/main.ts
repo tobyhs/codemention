@@ -9,10 +9,11 @@ import Runner from './runner'
 export async function run(): Promise<void> {
   try {
     const githubToken = core.getInput('githubToken')
-    const octokitRest = github.getOctokit(githubToken).rest
+    const octokit = github.getOctokit(githubToken)
+    const octokitRest = octokit.rest
 
     const configurationReader = new ConfigurationReaderImpl(octokitRest)
-    const filesChangedReader = new FilesChangedReaderImpl(octokitRest)
+    const filesChangedReader = new FilesChangedReaderImpl(octokit)
     const commentUpserter = new CommentUpserterImpl(octokitRest)
     const runner = new Runner(
       configurationReader,

@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {GitHub} from '@actions/github/lib/utils.d'
+import {GitHub} from '@actions/github/lib/utils'
 import {beforeEach, describe, expect, it, jest} from '@jest/globals'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import {randomUUID} from 'crypto'
@@ -22,6 +22,7 @@ jest.mock('../src/runner')
 
 describe('run', () => {
   const githubToken = randomUUID()
+  let octokit: InstanceType<typeof GitHub>
   let octokitRest: RestEndpointMethods
 
   beforeEach(() => {
@@ -34,7 +35,7 @@ describe('run', () => {
     })
 
     octokitRest = new Mock<RestEndpointMethods>().object()
-    const octokit = new Mock<InstanceType<typeof GitHub>>()
+    octokit = new Mock<InstanceType<typeof GitHub>>()
       .setup(instance => instance.rest)
       .returns(octokitRest)
       .object()
@@ -48,9 +49,7 @@ describe('run', () => {
     expect(jest.mocked(ConfigurationReaderImpl)).toHaveBeenCalledWith(
       octokitRest
     )
-    expect(jest.mocked(FilesChangedReaderImpl)).toHaveBeenCalledWith(
-      octokitRest
-    )
+    expect(jest.mocked(FilesChangedReaderImpl)).toHaveBeenCalledWith(octokit)
     expect(jest.mocked(CommentUpserterImpl)).toHaveBeenCalledWith(octokitRest)
 
     expect(jest.mocked(Runner)).toHaveBeenCalledWith(

@@ -1,54 +1,67 @@
+import {GitHub} from '@actions/github/lib/utils'
 import {beforeEach, describe, expect, it} from '@jest/globals'
-import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
-import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
-import * as fs from 'fs'
-import {EqualMatchingInjectorConfig, Mock} from 'moq.ts'
-import * as path from 'path'
+import {
+  MapFunction,
+  PaginationResults
+} from '@octokit/plugin-paginate-rest/dist-types/types'
+import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
+import {OctokitResponse} from '@octokit/types'
+import deepEqual from 'deep-equal'
+import {EqualMatchingInjectorConfig, It, Mock} from 'moq.ts'
 
 import {FilesChangedReaderImpl} from '../src/files-changed-reader'
 import {Repo} from '../src/github-types'
 
+type ListFilesMethod = RestEndpointMethods['pulls']['listFiles']
+
 describe('FilesChangedReaderImpl', () => {
-  let pullsMock: Mock<RestEndpointMethods['pulls']>
+  let listFilesMethod: ListFilesMethod
+  let octokitMock: Mock<InstanceType<typeof GitHub>>
   let reader: FilesChangedReaderImpl
 
   beforeEach(() => {
-    pullsMock = new Mock<RestEndpointMethods['pulls']>({
+    listFilesMethod = new Mock<ListFilesMethod>().object()
+    octokitMock = new Mock<InstanceType<typeof GitHub>>({
       injectorConfig: new EqualMatchingInjectorConfig()
     })
-    const octokitRestMock = new Mock<RestEndpointMethods>()
-      .setup(instance => instance.pulls)
-      .returns(pullsMock.object())
-    reader = new FilesChangedReaderImpl(octokitRestMock.object())
+    octokitMock
+      .setup(instance => instance.rest.pulls.listFiles)
+      .returns(listFilesMethod)
+    reader = new FilesChangedReaderImpl(octokitMock.object())
   })
 
   describe('.read', () => {
-    const repo: Repo = {owner: 'vanilla-music', repo: 'vanilla'}
+    const repo: Repo = {owner: 'rails', repo: 'rails'}
+    const prNumber = 52197
 
     it('returns the files changed', async () => {
-      const diff = fs.readFileSync(
-        path.join(__dirname, 'fixtures', 'pull.diff'),
-        'utf8'
-      )
+      const expectedFilesChanged = [
+        'actionpack/CHANGELOG.md',
+        'actionpack/lib/action_controller/metal/conditional_get.rb',
+        'actionpack/lib/action_dispatch/http/cache.rb',
+        'actionpack/test/controller/render_test.rb'
+      ]
       const response = {
-        data: diff
-      } as unknown as RestEndpointMethodTypes['pulls']['get']['response']
-      pullsMock
-        .setup(instance =>
-          instance.get({...repo, pull_number: 868, mediaType: {format: 'diff'}})
+        data: [{filename: 'abc.txt'}, {filename: 'def.txt'}]
+      } as OctokitResponse<PaginationResults>
+      const mapFnMatcher = It.Is<MapFunction>(value =>
+        deepEqual(
+          value(response, () => {}),
+          ['abc.txt', 'def.txt']
         )
-        .returnsAsync(response)
+      )
+      octokitMock
+        .setup(instance =>
+          instance.paginate(
+            listFilesMethod,
+            {...repo, pull_number: prNumber, per_page: 100},
+            mapFnMatcher
+          )
+        )
+        .returnsAsync(expectedFilesChanged)
 
-      const filesChanged = await reader.read(repo, 868)
-      filesChanged.sort()
-      expect(filesChanged).toEqual([
-        'app/src/main/java/ch/blinkenlights/android/vanilla/JumpToTimeDialog.java',
-        'app/src/main/java/ch/blinkenlights/android/vanilla/PlaybackActivity.java',
-        'app/src/main/java/ch/blinkenlights/android/vanilla/PlaybackService.java',
-        'app/src/main/java/ch/blinkenlights/android/vanilla/SlidingPlaybackActivity.java',
-        'app/src/main/res/layout/duration_input.xml',
-        'app/src/main/res/values/translatable.xml'
-      ])
+      const actualFilesChanged = await reader.read(repo, prNumber)
+      expect(actualFilesChanged).toEqual(expectedFilesChanged)
     })
   })
 })
