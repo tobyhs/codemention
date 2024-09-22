@@ -7,12 +7,12 @@ import {EqualMatchingInjectorConfig, Mock} from 'moq.ts'
 import * as path from 'path'
 
 import {Configuration} from '../src/configuration'
-import {ConfigurationReaderImpl} from '../src/configuration-reader'
+import {CodementionYamlConfigurationReaderImpl, CodementionCodeownersLikeFormatFileConfigurationReaderImpl} from '../src/configuration-reader'
 import {Repo} from '../src/github-types'
 
-describe('ConfigurationReaderImpl', () => {
+describe(CodementionYamlConfigurationReaderImpl, () => {
   let reposMock: Mock<RestEndpointMethods['repos']>
-  let reader: ConfigurationReaderImpl
+  let reader: CodementionYamlConfigurationReaderImpl
 
   beforeEach(() => {
     reposMock = new Mock<RestEndpointMethods['repos']>({
@@ -21,7 +21,7 @@ describe('ConfigurationReaderImpl', () => {
     const octokitRestMock = new Mock<RestEndpointMethods>()
       .setup(instance => instance.repos)
       .returns(reposMock.object())
-    reader = new ConfigurationReaderImpl(octokitRestMock.object())
+    reader = new CodementionYamlConfigurationReaderImpl(octokitRestMock.object())
   })
 
   describe('.read', () => {
@@ -62,3 +62,76 @@ describe('ConfigurationReaderImpl', () => {
     })
   })
 })
+
+describe(CodementionCodeownersLikeFormatFileConfigurationReaderImpl, () => {
+  let reposMock: Mock<RestEndpointMethods['repos']>
+  let reader: CodementionCodeownersLikeFormatFileConfigurationReaderImpl
+
+  beforeEach(() => {
+    reposMock = new Mock<RestEndpointMethods['repos']>({
+      injectorConfig: new EqualMatchingInjectorConfig()
+    })
+    const octokitRestMock = new Mock<RestEndpointMethods>()
+      .setup(instance => instance.repos)
+      .returns(reposMock.object())
+    reader = new CodementionCodeownersLikeFormatFileConfigurationReaderImpl(octokitRestMock.object())
+  })
+
+  describe('.read', () => {
+    const repo: Repo = {owner: 'tobyhs', repo: 'codemention'}
+    const ref: string = '7b5c561a5c3a2a2a61d7ff05c3b1dd30df4b89f9'
+
+    const stubGetContent = function (data: {content?: string}) {
+      const response = {
+        data
+      } as RestEndpointMethodTypes['repos']['getContent']['response']
+      reposMock
+        .setup(instance =>
+          instance.getContent({...repo, path: '.github/CODEMENTION', ref})
+        )
+        .returnsAsync(response)
+    }
+
+    it('returns configuration from .github/CODEMENTION', async () => {
+      const fileContents = fs.readFileSync(
+        path.join(__dirname, 'fixtures', 'CODEMENTION'),
+        'utf8'
+      )
+      const data = {content: Buffer.from(fileContents).toString('base64')}
+      stubGetContent(data)
+      const expectedConfig: Configuration = {
+        rules: [
+          {
+            mentions: ['sysadmin'],
+            patterns: ['/config']
+          },
+          {
+            mentions: ['cto', 'dba'],
+            patterns: ['/db/migrate']
+          },
+          {
+            mentions: ['ci'],
+            patterns: ['/.github']
+          },
+          {
+            mentions: ['ci'],
+            patterns: ['/spec/*.rb']
+          }
+        ]
+      }
+
+      const config = await reader.read(repo, ref)
+      expect(config).toEqual(expectedConfig)
+    })
+
+    describe('when the response has no content', () => {
+      it('throws an error', async () => {
+        stubGetContent({})
+        await expect(reader.read(repo, ref)).rejects.toThrow(
+          'No content for .github/CODEMENTION'
+        )
+      })
+    })
+  })
+})
+

@@ -6,6 +6,10 @@ inputs:
   githubToken:
     required: true
     description: GitHub API token
+  configFileType:
+    required: false
+    description: Type of config file to use
+    default: yaml
 
 runs:
   using: composite

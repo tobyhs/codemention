@@ -1,0 +1,4 @@
+/config            @sysadmin
+/db/migrate        @cto @dba
+/.github           @ci
+/spec/*.rb         @ci
