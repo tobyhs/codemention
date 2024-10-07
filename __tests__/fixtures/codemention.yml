@@ -1,3 +1,6 @@
+commentConfiguration:
+  preamble: 'testing preamble'
+  epilogue: 'testing epilogue'
 rules:
   - patterns: ['config/**']
     mentions: ['sysadmin']

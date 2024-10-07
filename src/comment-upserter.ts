@@ -2,15 +2,13 @@ import * as core from '@actions/core'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import markdownEscape from 'markdown-escape'
 
-import {MentionRule} from './configuration'
+import {CommentConfiguration, MentionRule} from './configuration'
 import {Repo} from './github-types'
 
-export const HEADER = [
-  '<!-- codemention header -->',
-  '[CodeMention](https://github.com/tobyhs/codemention):\n',
-  '| File Patterns | Mentions |',
-  '| - | - |\n'
-].join('\n')
+export const HEADER = '<!-- codemention header -->'
+
+export const DEFAULT_COMMENT_PREAMBLE =
+  '[CodeMention](https://github.com/tobyhs/codemention):'
 
 /**
  * @see {@link upsert}
@@ -22,8 +20,14 @@ export interface CommentUpserter {
    * @param repo - repository that the pull request is in
    * @param pullNumber - number that identifies the pull request
    * @param rules - mention rules to use in the comment
+   * @param commentContent - comment content to print above matching rules table
    */
-  upsert(repo: Repo, pullNumber: number, rules: MentionRule[]): Promise<void>
+  upsert(
+    repo: Repo,
+    pullNumber: number,
+    rules: MentionRule[],
+    commentConfiguration?: CommentConfiguration
+  ): Promise<void>
 }
 
 export class CommentUpserterImpl implements CommentUpserter {
@@ -36,7 +40,8 @@ export class CommentUpserterImpl implements CommentUpserter {
   async upsert(
     repo: Repo,
     pullNumber: number,
-    rules: MentionRule[]
+    rules: MentionRule[],
+    commentConfiguration?: CommentConfiguration
   ): Promise<void> {
     const issuesApi = this.octokitRest.issues
     const listResponse = await issuesApi.listComments({
@@ -47,7 +52,7 @@ export class CommentUpserterImpl implements CommentUpserter {
     const existingComment = listResponse.data.find(
       c => c.body !== undefined && c.body.startsWith(HEADER)
     )
-    const commentBody = this.createCommentBody(rules)
+    const commentBody = this.createCommentBody(rules, commentConfiguration)
 
     if (existingComment === undefined) {
       if (rules.length > 0) {
@@ -76,18 +81,31 @@ export class CommentUpserterImpl implements CommentUpserter {
 
   /**
    * @param rules - mention rules to use in the comment
+   * @param commentContent - comment content to print above matching rules table
    * @returns text to be used in a GitHub pull request comment body
    */
-  private createCommentBody(rules: MentionRule[]): string {
-    const body = rules
-      .map(rule => {
-        const patterns = rule.patterns
-          .map(pattern => markdownEscape(pattern, ['slashes']))
-          .join('<br>')
-        const mentions = rule.mentions.map(name => `@${name}`).join(', ')
-        return `| ${patterns} | ${mentions} |`
-      })
+  private createCommentBody(
+    rules: MentionRule[],
+    commentConfiguration?: CommentConfiguration
+  ): string {
+    const mentionsTableRows = rules.map(rule => {
+      const patterns = rule.patterns
+        .map(pattern => markdownEscape(pattern, ['slashes']))
+        .join('<br>')
+      const mentions = rule.mentions.map(name => `@${name}`).join(', ')
+      return `| ${patterns} | ${mentions} |`
+    })
+    const content = [
+      commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
+      '| File Patterns | Mentions |',
+      '| - | - |',
+      ...mentionsTableRows,
+      commentConfiguration?.epilogue
+        ? `\n${commentConfiguration.epilogue}` // need two line breaks to finish table before epilogue
+        : undefined
+    ]
+      .filter(elem => elem !== undefined)
       .join('\n')
-    return `${HEADER}${body}`
+    return `${HEADER}${content}`
   }
 }
