@@ -68,8 +68,8 @@ describe('CommentUpserterImpl', () => {
 
       it('creates a comment', async () => {
         const expectedCommentBody =
-          HEADER +
           [
+            HEADER,
             DEFAULT_COMMENT_PREAMBLE,
             '| File Patterns | Mentions |',
             '| - | - |',
@@ -102,8 +102,8 @@ describe('CommentUpserterImpl', () => {
           epilogue: '> [CodeMention](https://github.com/tobyhs/codemention)'
         }
         const expectedCommentBody =
-          HEADER +
           [
+            HEADER,
             customContent.preamble,
             '| File Patterns | Mentions |',
             '| - | - |',
@@ -136,8 +136,8 @@ describe('CommentUpserterImpl', () => {
       describe('and the comment is different', () => {
         it('updates the comment', async () => {
           const expectedCommentBody =
-          HEADER +
           [
+            HEADER,
             DEFAULT_COMMENT_PREAMBLE,
             '| File Patterns | Mentions |',
             '| - | - |',
@@ -171,8 +171,8 @@ describe('CommentUpserterImpl', () => {
       describe('and the comment is the same', () => {
         it('does not update the comment', async () => {
           const commentBody =
-          HEADER +
           [
+            HEADER,
             DEFAULT_COMMENT_PREAMBLE,
             '| File Patterns | Mentions |',
             '| - | - |',

@@ -95,7 +95,8 @@ export class CommentUpserterImpl implements CommentUpserter {
       const mentions = rule.mentions.map(name => `@${name}`).join(', ')
       return `| ${patterns} | ${mentions} |`
     })
-    const content = [
+    return [
+      HEADER,
       commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
       '| File Patterns | Mentions |',
       '| - | - |',
@@ -106,6 +107,5 @@ export class CommentUpserterImpl implements CommentUpserter {
     ]
       .filter(elem => elem !== undefined)
       .join('\n')
-    return `${HEADER}${content}`
   }
 }
