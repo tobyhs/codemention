@@ -10,9 +10,21 @@ export interface MentionRule {
 }
 
 /**
+ * A set of configuration items for the comment posted by the bot
+ */
+export interface CommentConfiguration {
+  /** Comment content to print above matching rules table */
+  preamble?: string
+  /** Comment content to print below matching rules table */
+  epilogue?: string
+}
+
+/**
  * Configuration for the GitHub Action
  */
 export interface Configuration {
   /** Rules for mentioning */
   rules: MentionRule[]
+  /** Configuration for comment */
+  commentConfiguration?: CommentConfiguration
 }

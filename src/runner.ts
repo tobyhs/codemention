@@ -36,17 +36,18 @@ export default class Runner {
       return
     }
 
-    const configuration = await this.configurationReader.read(
-      repo,
-      pullRequest.base.sha
-    )
-    const filesChanged = await this.filesChangedReader.read(
-      repo,
-      pullRequest.number
-    )
+    const [configuration, filesChanged] = await Promise.all([
+      this.configurationReader.read(repo, pullRequest.base.sha),
+      this.filesChangedReader.read(repo, pullRequest.number)
+    ])
     const matchingRules = configuration.rules.filter(
       rule => micromatch(filesChanged, rule.patterns).length > 0
     )
-    await this.commentUpserter.upsert(repo, pullRequest.number, matchingRules)
+    await this.commentUpserter.upsert(
+      repo,
+      pullRequest.number,
+      matchingRules,
+      configuration.commentConfiguration
+    )
   }
 }

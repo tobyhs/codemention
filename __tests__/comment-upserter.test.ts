@@ -3,7 +3,7 @@ import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import {EqualMatchingInjectorConfig, It, Mock, Times} from 'moq.ts'
 
-import {CommentUpserterImpl, HEADER} from '../src/comment-upserter'
+import {CommentUpserterImpl, DEFAULT_COMMENT_PREAMBLE, HEADER} from '../src/comment-upserter'
 import {Repo} from '../src/github-types'
 
 describe('CommentUpserterImpl', () => {
@@ -34,13 +34,6 @@ describe('CommentUpserterImpl', () => {
         mentions: ['ci']
       }
     ]
-
-    const commentBody =
-      HEADER +
-      [
-        '| db/migrate/\\*\\* | @cto, @dba |',
-        '| .github/\\*\\*<br>spec/\\*.rb | @ci |'
-      ].join('\n')
 
     const stubListComments = (comments: string[]): void => {
       const listResponse = {
@@ -74,6 +67,16 @@ describe('CommentUpserterImpl', () => {
       })
 
       it('creates a comment', async () => {
+        const expectedCommentBody =
+          HEADER +
+          [
+            DEFAULT_COMMENT_PREAMBLE,
+            '| File Patterns | Mentions |',
+            '| - | - |',
+            '| db/migrate/\\*\\* | @cto, @dba |',
+            '| .github/\\*\\*<br>spec/\\*.rb | @ci |'
+          ].join('\n')
+
         issuesMock
           .setup(instance => instance.createComment(It.IsAny()))
           .returnsAsync(
@@ -88,7 +91,42 @@ describe('CommentUpserterImpl', () => {
           instance.createComment({
             ...repo,
             issue_number: pullNumber,
-            body: commentBody
+            body: expectedCommentBody
+          })
+        )
+      })
+
+      it('creates a comment with custom comment content', async () => {
+        const customContent = {
+          preamble: 'Added you as a subscriber.',
+          epilogue: '> [CodeMention](https://github.com/tobyhs/codemention)'
+        }
+        const expectedCommentBody =
+          HEADER +
+          [
+            customContent.preamble,
+            '| File Patterns | Mentions |',
+            '| - | - |',
+            '| db/migrate/\\*\\* | @cto, @dba |',
+            '| .github/\\*\\*<br>spec/\\*.rb | @ci |',
+            `\n${customContent.epilogue}`
+          ].join('\n')
+
+        issuesMock
+          .setup(instance => instance.createComment(It.IsAny()))
+          .returnsAsync(
+            new Mock<
+              RestEndpointMethodTypes['issues']['createComment']['response']
+            >().object()
+          )
+
+        await upserter.upsert(repo, pullNumber, rules, customContent)
+
+        issuesMock.verify(instance =>
+          instance.createComment({
+            ...repo,
+            issue_number: pullNumber,
+            body: expectedCommentBody
           })
         )
       })
@@ -97,6 +135,16 @@ describe('CommentUpserterImpl', () => {
     describe('when a codemention comment exists', () => {
       describe('and the comment is different', () => {
         it('updates the comment', async () => {
+          const expectedCommentBody =
+          HEADER +
+          [
+            DEFAULT_COMMENT_PREAMBLE,
+            '| File Patterns | Mentions |',
+            '| - | - |',
+            '| db/migrate/\\*\\* | @cto, @dba |',
+            '| .github/\\*\\*<br>spec/\\*.rb | @ci |'
+          ].join('\n')
+
           const existingComment = HEADER + '| config/brakeman.yml | @security |'
           stubListComments(['First', existingComment])
 
@@ -114,7 +162,7 @@ describe('CommentUpserterImpl', () => {
             instance.updateComment({
               ...repo,
               comment_id: 2,
-              body: commentBody
+              body: expectedCommentBody
             })
           )
         })
@@ -122,6 +170,16 @@ describe('CommentUpserterImpl', () => {
 
       describe('and the comment is the same', () => {
         it('does not update the comment', async () => {
+          const commentBody =
+          HEADER +
+          [
+            DEFAULT_COMMENT_PREAMBLE,
+            '| File Patterns | Mentions |',
+            '| - | - |',
+            '| db/migrate/\\*\\* | @cto, @dba |',
+            '| .github/\\*\\*<br>spec/\\*.rb | @ci |'
+          ].join('\n')
+
           stubListComments(['First', commentBody])
           await upserter.upsert(repo, pullNumber, rules)
 
