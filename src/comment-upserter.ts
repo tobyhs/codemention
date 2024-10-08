@@ -20,7 +20,7 @@ export interface CommentUpserter {
    * @param repo - repository that the pull request is in
    * @param pullNumber - number that identifies the pull request
    * @param rules - mention rules to use in the comment
-   * @param commentContent - comment content to print above matching rules table
+   * @param commentConfiguration - comment configuration for the upserted comment
    */
   upsert(
     repo: Repo,
@@ -81,7 +81,7 @@ export class CommentUpserterImpl implements CommentUpserter {
 
   /**
    * @param rules - mention rules to use in the comment
-   * @param commentContent - comment content to print above matching rules table
+   * @param commentConfiguration - comment configuration for the upserted comment
    * @returns text to be used in a GitHub pull request comment body
    */
   private createCommentBody(
