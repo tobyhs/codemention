@@ -5,7 +5,7 @@ import markdownEscape from 'markdown-escape'
 import {CommentConfiguration, MentionRule} from './configuration'
 import {Repo} from './github-types'
 
-export const HEADER = '<!-- codemention header -->'
+export const FOOTER = '<!-- codemention header -->'
 
 export const DEFAULT_COMMENT_PREAMBLE =
   '[CodeMention](https://github.com/tobyhs/codemention):'
@@ -50,7 +50,10 @@ export class CommentUpserterImpl implements CommentUpserter {
       issue_number: pullNumber
     })
     const existingComment = listResponse.data.find(
-      c => c.body !== undefined && c.body.startsWith(HEADER)
+      c =>
+        c.body !== undefined &&
+        // keep backwards compatibility with existing comments that have the comment first
+        (c.body.startsWith(FOOTER) || c.body.endsWith(FOOTER))
     )
     const commentBody = this.createCommentBody(rules, commentConfiguration)
 
@@ -96,14 +99,13 @@ export class CommentUpserterImpl implements CommentUpserter {
       return `| ${patterns} | ${mentions} |`
     })
     return [
-      HEADER,
       commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
       '| File Patterns | Mentions |',
       '| - | - |',
       ...mentionsTableRows,
-      commentConfiguration?.epilogue
-        ? `\n${commentConfiguration.epilogue}` // need two line breaks to finish table before epilogue
-        : undefined
+      '', // need an extra line break after table before epilogue/footer
+      commentConfiguration?.epilogue,
+      FOOTER
     ]
       .filter(elem => elem !== undefined)
       .join('\n')
