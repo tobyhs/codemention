@@ -43,4 +43,3 @@ jobs:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-
