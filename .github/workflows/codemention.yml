@@ -1,18 +1,35 @@
 name: codemention
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, ready_for_review]
 
 jobs:
   codemention:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
     steps:
+      # We don't want to run untrusted code from a fork (see
+      # https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/)
+      # so if the PR is from a fork, we'll run the main branch instead.
+      # Ideally, we would have an approval step for PRs from forks, but
+      # https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/approving-workflow-runs-from-public-forks
+      # indicates workflows triggered by pull_request_target events are always
+      # run regardless of approval settings.
+      - name: CodeMention (PR from fork)
+        uses: tobyhs/codemention@main
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+        if: github.event.pull_request.head.repo.fork
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: ./
+        if: ${{ !github.event.pull_request.head.repo.fork }}
+      - name: CodeMention (internal PR)
+        uses: ./
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ !github.event.pull_request.head.repo.fork }}
