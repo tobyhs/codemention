@@ -3,7 +3,7 @@ commentConfiguration:
   epilogue: 'testing epilogue'
 rules:
   - patterns: ['config/**']
-    mentions: ['sysadmin']
+    mentions: ['sysadmin', 'testlogin']
   - patterns: ['db/migrate/**']
     mentions: ['cto', 'dba']
   - patterns: ['.github/**', 'spec/*.rb']
