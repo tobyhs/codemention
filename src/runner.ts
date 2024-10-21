@@ -42,15 +42,17 @@ export default class Runner {
       this.filesChangedReader.read(repo, pullRequest.number)
     ])
 
-    // filter out the PR author so that they don't get double-notified
     const matchingRules = configuration.rules
+      // filter to rules that match
       .filter(rule => micromatch(filesChanged, rule.patterns).length > 0)
+      // filter out the PR author from mentions so that they don't get double-notified
       .map((rule: MentionRule) => ({
         ...rule,
         mentions: rule.mentions.filter(
           mention => mention !== pullRequest.user.login
         )
       }))
+      // filter out the rules that no longer have mentions due to author filtering
       .filter(rule => rule.mentions.length > 0)
 
     await this.commentUpserter.upsert(
