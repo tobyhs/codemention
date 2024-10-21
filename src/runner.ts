@@ -41,23 +41,22 @@ export default class Runner {
       this.configurationReader.read(repo, pullRequest.base.sha),
       this.filesChangedReader.read(repo, pullRequest.number)
     ])
-    const matchingRules = configuration.rules.filter(
-      rule => micromatch(filesChanged, rule.patterns).length > 0
-    )
-    const filteredRules = configuration.excludeAuthor
-      ? matchingRules
-          .map((rule: MentionRule) => ({
-            ...rule,
-            mentions: rule.mentions.filter(
-              mention => mention !== pullRequest.user.login
-            )
-          }))
-          .filter(rule => rule.mentions.length > 0)
-      : matchingRules
+
+    // filter out the PR author so that they don't get double-notified
+    const matchingRules = configuration.rules
+      .filter(rule => micromatch(filesChanged, rule.patterns).length > 0)
+      .map((rule: MentionRule) => ({
+        ...rule,
+        mentions: rule.mentions.filter(
+          mention => mention !== pullRequest.user.login
+        )
+      }))
+      .filter(rule => rule.mentions.length > 0)
+
     await this.commentUpserter.upsert(
       repo,
       pullRequest.number,
-      filteredRules,
+      matchingRules,
       configuration.commentConfiguration
     )
   }

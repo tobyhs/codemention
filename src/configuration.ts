@@ -27,6 +27,4 @@ export interface Configuration {
   rules: MentionRule[]
   /** Configuration for comment */
   commentConfiguration?: CommentConfiguration
-  /** Whether to exclude PR author from mentions */
-  excludeAuthor?: boolean
 }
