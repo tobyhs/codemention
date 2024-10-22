@@ -33,7 +33,10 @@ describe('Runner', () => {
     pullRequest = {
       number: prNumber,
       base: {sha: baseSha},
-      draft: false
+      draft: false,
+      user: {
+        login: 'testlogin'
+      }
     } as PullRequest
     context = {
       repo,
