@@ -100,7 +100,10 @@ describe('Runner', () => {
         }
       ]
       commentUpserterMock.verify(instance =>
-        instance.upsert(repo, prNumber, matchingRules, {preamble: 'testing preamble', epilogue: 'testing epilogue'})
+        instance.upsert(repo, prNumber, matchingRules, {
+          preamble: 'testing preamble',
+          epilogue: 'testing epilogue'
+        })
       )
     })
   })
