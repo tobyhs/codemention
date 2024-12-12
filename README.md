@@ -42,3 +42,8 @@ jobs:
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+### Team Mentions
+
+In order for CodeMention to mention teams, you need to use a GitHub [personal access token](https://github.com/settings/tokens) that has [organization permissions to read members](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#organization-permissions-for-members).
+Replace the `githubToken` input with your personal access token.
