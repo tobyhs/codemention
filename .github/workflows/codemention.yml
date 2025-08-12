@@ -24,7 +24,7 @@ jobs:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
         if: github.event.pull_request.head.repo.fork
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha }}
         if: ${{ !github.event.pull_request.head.repo.fork }}
