@@ -23,6 +23,8 @@ rules:
     mentions: ['ci']
 ```
 
+See the Configuration interface in [src/configuration.ts](src/configuration.ts) for possible options.
+
 Add a `.github/workflows/codemention.yml` file to your repo with the following:
 ```yaml
 name: codemention
