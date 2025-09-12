@@ -44,7 +44,9 @@ export default class Runner {
 
     const matchingRules = configuration.rules
       // filter to rules that match
-      .filter(rule => micromatch(filesChanged, rule.patterns).length > 0)
+      .filter(
+        rule => micromatch(filesChanged, rule.patterns, {dot: true}).length > 0
+      )
       // filter out the PR author from mentions so that they don't get double-notified
       .map((rule: MentionRule) => ({
         ...rule,

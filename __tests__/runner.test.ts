@@ -51,7 +51,7 @@ describe('Runner', () => {
       .object()
 
     const filesChanged = [
-      'config/application.rb',
+      'config/.env.production',
       '.github/workflows/codemention.yml'
     ]
     filesChangedReader = new Mock<FilesChangedReader>({
