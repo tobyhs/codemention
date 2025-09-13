@@ -1,6 +1,7 @@
 import {beforeEach, describe, it} from '@jest/globals'
 import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
+import dedent from 'dedent'
 import {EqualMatchingInjectorConfig, It, Mock, Times} from 'moq.ts'
 
 import {
@@ -70,69 +71,65 @@ describe('CommentUpserterImpl', () => {
         })
       })
 
-      it('creates a comment', async () => {
-        const expectedCommentBody = [
-          DEFAULT_COMMENT_PREAMBLE,
-          '| File Patterns | Mentions |',
-          '| - | - |',
-          '| db/migrate/\\*\\* | @cto, @dba |',
-          '| .github/\\*\\*<br>spec/\\*.rb | @ci |',
-          '',
-          FOOTER
-        ].join('\n')
+      describe('and there are matching rules', () => {
+        beforeEach(() => {
+          issuesMock
+            .setup(instance => instance.createComment(It.IsAny()))
+            .returnsAsync(
+              new Mock<
+                RestEndpointMethodTypes['issues']['createComment']['response']
+              >().object()
+            )
+        })
 
-        issuesMock
-          .setup(instance => instance.createComment(It.IsAny()))
-          .returnsAsync(
-            new Mock<
-              RestEndpointMethodTypes['issues']['createComment']['response']
-            >().object()
+        it('creates a comment', async () => {
+          const expectedCommentBody = dedent`
+            ${DEFAULT_COMMENT_PREAMBLE}
+            | File Patterns | Mentions |
+            | - | - |
+            | db/migrate/\*\* | @cto, @dba |
+            | .github/\*\*<br>spec/\*.rb | @ci |
+
+            ${FOOTER}
+          `
+
+          await upserter.upsert(repo, pullNumber, rules)
+
+          issuesMock.verify(instance =>
+            instance.createComment({
+              ...repo,
+              issue_number: pullNumber,
+              body: expectedCommentBody
+            })
           )
+        })
 
-        await upserter.upsert(repo, pullNumber, rules)
+        it('creates a comment with custom comment content', async () => {
+          const customContent = {
+            preamble: 'Added you as a subscriber.',
+            epilogue: '> [CodeMention](https://github.com/tobyhs/codemention)'
+          }
+          const expectedCommentBody = dedent`
+            ${customContent.preamble}
+            | File Patterns | Mentions |
+            | - | - |
+            | db/migrate/\*\* | @cto, @dba |
+            | .github/\*\*<br>spec/\*.rb | @ci |
 
-        issuesMock.verify(instance =>
-          instance.createComment({
-            ...repo,
-            issue_number: pullNumber,
-            body: expectedCommentBody
-          })
-        )
-      })
+            ${customContent.epilogue}
+            ${FOOTER}
+          `
 
-      it('creates a comment with custom comment content', async () => {
-        const customContent = {
-          preamble: 'Added you as a subscriber.',
-          epilogue: '> [CodeMention](https://github.com/tobyhs/codemention)'
-        }
-        const expectedCommentBody = [
-          customContent.preamble,
-          '| File Patterns | Mentions |',
-          '| - | - |',
-          '| db/migrate/\\*\\* | @cto, @dba |',
-          '| .github/\\*\\*<br>spec/\\*.rb | @ci |',
-          '',
-          customContent.epilogue,
-          FOOTER
-        ].join('\n')
+          await upserter.upsert(repo, pullNumber, rules, customContent)
 
-        issuesMock
-          .setup(instance => instance.createComment(It.IsAny()))
-          .returnsAsync(
-            new Mock<
-              RestEndpointMethodTypes['issues']['createComment']['response']
-            >().object()
+          issuesMock.verify(instance =>
+            instance.createComment({
+              ...repo,
+              issue_number: pullNumber,
+              body: expectedCommentBody
+            })
           )
-
-        await upserter.upsert(repo, pullNumber, rules, customContent)
-
-        issuesMock.verify(instance =>
-          instance.createComment({
-            ...repo,
-            issue_number: pullNumber,
-            body: expectedCommentBody
-          })
-        )
+        })
       })
     })
 
@@ -140,15 +137,15 @@ describe('CommentUpserterImpl', () => {
       describe('and the comment is different', () => {
         describe('and the comment has the sentinel at the start', () => {
           it('updates the comment', async () => {
-            const expectedCommentBody = [
-              DEFAULT_COMMENT_PREAMBLE,
-              '| File Patterns | Mentions |',
-              '| - | - |',
-              '| db/migrate/\\*\\* | @cto, @dba |',
-              '| .github/\\*\\*<br>spec/\\*.rb | @ci |',
-              '',
-              FOOTER
-            ].join('\n')
+            const expectedCommentBody = dedent`
+              ${DEFAULT_COMMENT_PREAMBLE}
+              | File Patterns | Mentions |
+              | - | - |
+              | db/migrate/\*\* | @cto, @dba |
+              | .github/\*\*<br>spec/\*.rb | @ci |
+
+              ${FOOTER}
+            `
 
             // previous version of the action put the sentinel comment at the start
             const existingComment =
@@ -177,15 +174,15 @@ describe('CommentUpserterImpl', () => {
 
         describe('and the comment has the sentinel at the end', () => {
           it('updates the comment', async () => {
-            const expectedCommentBody = [
-              DEFAULT_COMMENT_PREAMBLE,
-              '| File Patterns | Mentions |',
-              '| - | - |',
-              '| db/migrate/\\*\\* | @cto, @dba |',
-              '| .github/\\*\\*<br>spec/\\*.rb | @ci |',
-              '',
-              FOOTER
-            ].join('\n')
+            const expectedCommentBody = dedent`
+              ${DEFAULT_COMMENT_PREAMBLE}
+              | File Patterns | Mentions |
+              | - | - |
+              | db/migrate/\*\* | @cto, @dba |
+              | .github/\*\*<br>spec/\*.rb | @ci |
+
+              ${FOOTER}
+            `
 
             const existingComment =
               '| config/brakeman.yml | @security |' + FOOTER
@@ -214,15 +211,15 @@ describe('CommentUpserterImpl', () => {
 
       describe('and the comment is the same', () => {
         it('does not update the comment', async () => {
-          const commentBody = [
-            DEFAULT_COMMENT_PREAMBLE,
-            '| File Patterns | Mentions |',
-            '| - | - |',
-            '| db/migrate/\\*\\* | @cto, @dba |',
-            '| .github/\\*\\*<br>spec/\\*.rb | @ci |',
-            '',
-            FOOTER
-          ].join('\n')
+          const commentBody = dedent`
+            ${DEFAULT_COMMENT_PREAMBLE}
+            | File Patterns | Mentions |
+            | - | - |
+            | db/migrate/\*\* | @cto, @dba |
+            | .github/\*\*<br>spec/\*.rb | @ci |
+
+            ${FOOTER}
+          `
 
           stubListComments(['First', commentBody])
           await upserter.upsert(repo, pullNumber, rules)
