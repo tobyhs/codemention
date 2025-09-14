@@ -130,6 +130,37 @@ describe('CommentUpserterImpl', () => {
             })
           )
         })
+
+        it('creates a comment with a custom template', async () => {
+          const template = dedent`
+            # CodeMention
+            {{#each matchedRules}}
+            {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}}:
+            {{#each patterns}}{{#markdownEscape}}{{this}}{{/markdownEscape}}{{#unless @last}}, {{/unless}}{{/each}}
+
+            {{/each}}
+          `
+          const expectedCommentBody = dedent`
+            # CodeMention
+            @cto, @dba:
+            db/migrate/\*\*
+
+            @ci:
+            .github/\*\*, spec/\*.rb
+
+            ${FOOTER}
+          `
+
+          await upserter.upsert(repo, pullNumber, rules, {template})
+
+          issuesMock.verify(instance =>
+            instance.createComment({
+              ...repo,
+              issue_number: pullNumber,
+              body: expectedCommentBody
+            })
+          )
+        })
       })
     })
 

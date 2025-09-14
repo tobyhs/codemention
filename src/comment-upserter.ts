@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
+import Handlebars, {HelperOptions} from 'handlebars'
 import markdownEscape from 'markdown-escape'
 
 import {CommentConfiguration, MentionRule} from './configuration'
@@ -9,6 +10,24 @@ export const FOOTER = '<!-- codemention header -->'
 
 export const DEFAULT_COMMENT_PREAMBLE =
   '[CodeMention](https://github.com/tobyhs/codemention):'
+
+const HANDLEBARS_HELPERS = {
+  markdownEscape(options: HelperOptions): string {
+    return markdownEscape(options.fn(this), ['slashes'])
+  }
+}
+
+const DEFAULT_TEMPLATE = `{{preamble}}
+| File Patterns | Mentions |
+| - | - |
+{{#each matchedRules}}
+| {{#each patterns}}{{#markdownEscape}}{{this}}{{/markdownEscape}}{{#unless @last}}<br>{{/unless}}{{/each}} | {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}} |
+{{/each}}
+
+{{#if epilogue}}
+{{epilogue}}
+{{/if}}
+`
 
 /**
  * @see {@link upsert}
@@ -91,23 +110,15 @@ export class CommentUpserterImpl implements CommentUpserter {
     rules: MentionRule[],
     commentConfiguration?: CommentConfiguration
   ): string {
-    const mentionsTableRows = rules.map(rule => {
-      const patterns = rule.patterns
-        .map(pattern => markdownEscape(pattern, ['slashes']))
-        .join('<br>')
-      const mentions = rule.mentions.map(name => `@${name}`).join(', ')
-      return `| ${patterns} | ${mentions} |`
-    })
-    return [
-      commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
-      '| File Patterns | Mentions |',
-      '| - | - |',
-      ...mentionsTableRows,
-      '', // need an extra line break after table before epilogue/footer
-      commentConfiguration?.epilogue,
-      FOOTER
-    ]
-      .filter(elem => elem !== undefined)
-      .join('\n')
+    const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
+    const comment = Handlebars.compile(template, {noEscape: true})(
+      {
+        matchedRules: rules,
+        preamble: commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
+        epilogue: commentConfiguration?.epilogue
+      },
+      {helpers: HANDLEBARS_HELPERS}
+    )
+    return `${comment}${FOOTER}`
   }
 }
