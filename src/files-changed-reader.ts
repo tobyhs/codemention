@@ -31,9 +31,9 @@ export class FilesChangedReaderImpl implements FilesChangedReader {
         owner: repo.owner,
         repo: repo.repo,
         pull_number: pullNumber,
-        per_page: 100
+        per_page: 100,
       },
-      response => response.data.map(file => file.filename)
+      response => response.data.map(file => file.filename),
     )
     core.debug(`Files changed: ${filesChanged}`)
     return filesChanged

@@ -20,7 +20,7 @@ export default class Runner {
   constructor(
     private readonly configurationReader: ConfigurationReader,
     private readonly filesChangedReader: FilesChangedReader,
-    private readonly commentUpserter: CommentUpserter
+    private readonly commentUpserter: CommentUpserter,
   ) {}
 
   /**
@@ -39,20 +39,20 @@ export default class Runner {
 
     const [configuration, filesChanged] = await Promise.all([
       this.configurationReader.read(repo, pullRequest.base.sha),
-      this.filesChangedReader.read(repo, pullRequest.number)
+      this.filesChangedReader.read(repo, pullRequest.number),
     ])
 
     const matchingRules = configuration.rules
       // filter to rules that match
       .filter(
-        rule => micromatch(filesChanged, rule.patterns, {dot: true}).length > 0
+        rule => micromatch(filesChanged, rule.patterns, {dot: true}).length > 0,
       )
       // filter out the PR author from mentions so that they don't get double-notified
       .map((rule: MentionRule) => ({
         ...rule,
         mentions: rule.mentions.filter(
-          mention => mention !== pullRequest.user.login
-        )
+          mention => mention !== pullRequest.user.login,
+        ),
       }))
       // filter out the rules that no longer have mentions due to author filtering
       .filter(rule => rule.mentions.length > 0)
@@ -61,7 +61,7 @@ export default class Runner {
       repo,
       pullRequest.number,
       matchingRules,
-      configuration.commentConfiguration
+      configuration.commentConfiguration,
     )
   }
 }

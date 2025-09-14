@@ -18,7 +18,7 @@ export async function run(): Promise<void> {
     const runner = new Runner(
       configurationReader,
       filesChangedReader,
-      commentUpserter
+      commentUpserter,
     )
     runner.run(github.context)
   } catch (error) {

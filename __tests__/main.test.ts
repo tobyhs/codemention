@@ -47,7 +47,7 @@ describe('run', () => {
 
     expect(github.getOctokit).toHaveBeenCalledWith(githubToken)
     expect(jest.mocked(ConfigurationReaderImpl)).toHaveBeenCalledWith(
-      octokitRest
+      octokitRest,
     )
     expect(jest.mocked(FilesChangedReaderImpl)).toHaveBeenCalledWith(octokit)
     expect(jest.mocked(CommentUpserterImpl)).toHaveBeenCalledWith(octokitRest)
@@ -55,11 +55,11 @@ describe('run', () => {
     expect(jest.mocked(Runner)).toHaveBeenCalledWith(
       jest.mocked(ConfigurationReaderImpl).mock.instances[0],
       jest.mocked(FilesChangedReaderImpl).mock.instances[0],
-      jest.mocked(CommentUpserterImpl).mock.instances[0]
+      jest.mocked(CommentUpserterImpl).mock.instances[0],
     )
 
     expect(jest.mocked(Runner).mock.instances[0].run).toHaveBeenCalledWith(
-      github.context
+      github.context,
     )
     expect(jest.mocked(core).setFailed).not.toHaveBeenCalled()
   })
@@ -71,7 +71,7 @@ describe('run', () => {
       })
       await run()
       expect(jest.mocked(core).setFailed).toHaveBeenCalledWith(
-        'Error: getInput error'
+        'Error: getInput error',
       )
     })
   })

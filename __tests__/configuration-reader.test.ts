@@ -16,7 +16,7 @@ describe('ConfigurationReaderImpl', () => {
 
   beforeEach(() => {
     reposMock = new Mock<RestEndpointMethods['repos']>({
-      injectorConfig: new EqualMatchingInjectorConfig()
+      injectorConfig: new EqualMatchingInjectorConfig(),
     })
     const octokitRestMock = new Mock<RestEndpointMethods>()
       .setup(instance => instance.repos)
@@ -30,11 +30,11 @@ describe('ConfigurationReaderImpl', () => {
 
     const stubGetContent = function (data: {content?: string}) {
       const response = {
-        data
+        data,
       } as RestEndpointMethodTypes['repos']['getContent']['response']
       reposMock
         .setup(instance =>
-          instance.getContent({...repo, path: '.github/codemention.yml', ref})
+          instance.getContent({...repo, path: '.github/codemention.yml', ref}),
         )
         .returnsAsync(response)
     }
@@ -42,7 +42,7 @@ describe('ConfigurationReaderImpl', () => {
     it('returns configuration from .github/codemention.yml', async () => {
       const fileContents = fs.readFileSync(
         path.join(__dirname, 'fixtures', 'codemention.yml'),
-        'utf8'
+        'utf8',
       )
       const data = {content: Buffer.from(fileContents).toString('base64')}
       stubGetContent(data)
@@ -56,7 +56,7 @@ describe('ConfigurationReaderImpl', () => {
       it('throws an error', async () => {
         stubGetContent({})
         await expect(reader.read(repo, ref)).rejects.toThrow(
-          'No content for .github/codemention.yml'
+          'No content for .github/codemention.yml',
         )
       })
     })

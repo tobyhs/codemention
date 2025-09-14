@@ -7,7 +7,7 @@ import {EqualMatchingInjectorConfig, It, Mock, Times} from 'moq.ts'
 import {
   CommentUpserterImpl,
   DEFAULT_COMMENT_PREAMBLE,
-  FOOTER
+  FOOTER,
 } from '../src/comment-upserter'
 import {Repo} from '../src/github-types'
 
@@ -17,7 +17,7 @@ describe('CommentUpserterImpl', () => {
 
   beforeEach(() => {
     issuesMock = new Mock<RestEndpointMethods['issues']>({
-      injectorConfig: new EqualMatchingInjectorConfig()
+      injectorConfig: new EqualMatchingInjectorConfig(),
     })
     const octokitRestMock = new Mock<RestEndpointMethods>()
       .setup(instance => instance.issues)
@@ -32,22 +32,25 @@ describe('CommentUpserterImpl', () => {
     const rules = [
       {
         patterns: ['db/migrate/**'],
-        mentions: ['cto', 'dba']
+        mentions: ['cto', 'dba'],
       },
       {
         patterns: ['.github/**', 'spec/*.rb'],
-        mentions: ['ci']
-      }
+        mentions: ['ci'],
+      },
     ]
 
     const stubListComments = (comments: string[]): void => {
       const listResponse = {
-        data: comments.map((comment, index) => ({id: index + 1, body: comment}))
+        data: comments.map((comment, index) => ({
+          id: index + 1,
+          body: comment,
+        })),
       } as RestEndpointMethodTypes['issues']['listComments']['response']
 
       issuesMock
         .setup(instance =>
-          instance.listComments({...repo, issue_number: pullNumber})
+          instance.listComments({...repo, issue_number: pullNumber}),
         )
         .returnsAsync(listResponse)
     }
@@ -62,11 +65,11 @@ describe('CommentUpserterImpl', () => {
           await upserter.upsert(repo, pullNumber, [])
           issuesMock.verify(
             instance => instance.createComment(It.IsAny()),
-            Times.Never()
+            Times.Never(),
           )
           issuesMock.verify(
             instance => instance.updateComment(It.IsAny()),
-            Times.Never()
+            Times.Never(),
           )
         })
       })
@@ -78,7 +81,7 @@ describe('CommentUpserterImpl', () => {
             .returnsAsync(
               new Mock<
                 RestEndpointMethodTypes['issues']['createComment']['response']
-              >().object()
+              >().object(),
             )
         })
 
@@ -99,15 +102,15 @@ describe('CommentUpserterImpl', () => {
             instance.createComment({
               ...repo,
               issue_number: pullNumber,
-              body: expectedCommentBody
-            })
+              body: expectedCommentBody,
+            }),
           )
         })
 
         it('creates a comment with custom comment content', async () => {
           const customContent = {
             preamble: 'Added you as a subscriber.',
-            epilogue: '> [CodeMention](https://github.com/tobyhs/codemention)'
+            epilogue: '> [CodeMention](https://github.com/tobyhs/codemention)',
           }
           const expectedCommentBody = dedent`
             ${customContent.preamble}
@@ -126,8 +129,8 @@ describe('CommentUpserterImpl', () => {
             instance.createComment({
               ...repo,
               issue_number: pullNumber,
-              body: expectedCommentBody
-            })
+              body: expectedCommentBody,
+            }),
           )
         })
 
@@ -157,8 +160,8 @@ describe('CommentUpserterImpl', () => {
             instance.createComment({
               ...repo,
               issue_number: pullNumber,
-              body: expectedCommentBody
-            })
+              body: expectedCommentBody,
+            }),
           )
         })
       })
@@ -188,7 +191,7 @@ describe('CommentUpserterImpl', () => {
               .returnsAsync(
                 new Mock<
                   RestEndpointMethodTypes['issues']['updateComment']['response']
-                >().object()
+                >().object(),
               )
 
             await upserter.upsert(repo, pullNumber, rules)
@@ -197,8 +200,8 @@ describe('CommentUpserterImpl', () => {
               instance.updateComment({
                 ...repo,
                 comment_id: 2,
-                body: expectedCommentBody
-              })
+                body: expectedCommentBody,
+              }),
             )
           })
         })
@@ -224,7 +227,7 @@ describe('CommentUpserterImpl', () => {
               .returnsAsync(
                 new Mock<
                   RestEndpointMethodTypes['issues']['updateComment']['response']
-                >().object()
+                >().object(),
               )
 
             await upserter.upsert(repo, pullNumber, rules)
@@ -233,8 +236,8 @@ describe('CommentUpserterImpl', () => {
               instance.updateComment({
                 ...repo,
                 comment_id: 2,
-                body: expectedCommentBody
-              })
+                body: expectedCommentBody,
+              }),
             )
           })
         })
@@ -257,7 +260,7 @@ describe('CommentUpserterImpl', () => {
 
           issuesMock.verify(
             instance => instance.updateComment(It.IsAny()),
-            Times.Never()
+            Times.Never(),
           )
         })
       })

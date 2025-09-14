@@ -14,7 +14,7 @@ export const DEFAULT_COMMENT_PREAMBLE =
 const HANDLEBARS_HELPERS = {
   markdownEscape(options: HelperOptions): string {
     return markdownEscape(options.fn(this), ['slashes'])
-  }
+  },
 }
 
 const DEFAULT_TEMPLATE = `{{preamble}}
@@ -45,7 +45,7 @@ export interface CommentUpserter {
     repo: Repo,
     pullNumber: number,
     rules: MentionRule[],
-    commentConfiguration?: CommentConfiguration
+    commentConfiguration?: CommentConfiguration,
   ): Promise<void>
 }
 
@@ -60,19 +60,19 @@ export class CommentUpserterImpl implements CommentUpserter {
     repo: Repo,
     pullNumber: number,
     rules: MentionRule[],
-    commentConfiguration?: CommentConfiguration
+    commentConfiguration?: CommentConfiguration,
   ): Promise<void> {
     const issuesApi = this.octokitRest.issues
     const listResponse = await issuesApi.listComments({
       owner: repo.owner,
       repo: repo.repo,
-      issue_number: pullNumber
+      issue_number: pullNumber,
     })
     const existingComment = listResponse.data.find(
       c =>
         c.body !== undefined &&
         // keep backwards compatibility with existing comments that have the comment first
-        (c.body.startsWith(FOOTER) || c.body.endsWith(FOOTER))
+        (c.body.startsWith(FOOTER) || c.body.endsWith(FOOTER)),
     )
     const commentBody = this.createCommentBody(rules, commentConfiguration)
 
@@ -83,7 +83,7 @@ export class CommentUpserterImpl implements CommentUpserter {
           owner: repo.owner,
           repo: repo.repo,
           issue_number: pullNumber,
-          body: commentBody
+          body: commentBody,
         })
       } else {
         core.info('Not creating a pull request comment. No rules matched.')
@@ -94,7 +94,7 @@ export class CommentUpserterImpl implements CommentUpserter {
         owner: repo.owner,
         repo: repo.repo,
         comment_id: existingComment.id,
-        body: commentBody
+        body: commentBody,
       })
     } else {
       core.info('Not updating pull request comment. Comment body matched.')
@@ -108,16 +108,16 @@ export class CommentUpserterImpl implements CommentUpserter {
    */
   private createCommentBody(
     rules: MentionRule[],
-    commentConfiguration?: CommentConfiguration
+    commentConfiguration?: CommentConfiguration,
   ): string {
     const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
     const comment = Handlebars.compile(template, {noEscape: true})(
       {
         matchedRules: rules,
         preamble: commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
-        epilogue: commentConfiguration?.epilogue
+        epilogue: commentConfiguration?.epilogue,
       },
-      {helpers: HANDLEBARS_HELPERS}
+      {helpers: HANDLEBARS_HELPERS},
     )
     return `${comment}${FOOTER}`
   }

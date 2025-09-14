@@ -32,7 +32,7 @@ export class ConfigurationReaderImpl implements ConfigurationReader {
       owner: repo.owner,
       repo: repo.repo,
       path: '.github/codemention.yml',
-      ref
+      ref,
     })
     if ('content' in data) {
       const content = Buffer.from(data.content, 'base64').toString()

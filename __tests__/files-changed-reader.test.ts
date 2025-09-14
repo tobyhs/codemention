@@ -2,7 +2,7 @@ import {GitHub} from '@actions/github/lib/utils'
 import {beforeEach, describe, expect, it} from '@jest/globals'
 import {
   MapFunction,
-  PaginationResults
+  PaginationResults,
 } from '@octokit/plugin-paginate-rest/dist-types/types'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
 import {OctokitResponse} from '@octokit/types'
@@ -22,7 +22,7 @@ describe('FilesChangedReaderImpl', () => {
   beforeEach(() => {
     listFilesMethod = new Mock<ListFilesMethod>().object()
     octokitMock = new Mock<InstanceType<typeof GitHub>>({
-      injectorConfig: new EqualMatchingInjectorConfig()
+      injectorConfig: new EqualMatchingInjectorConfig(),
     })
     octokitMock
       .setup(instance => instance.rest.pulls.listFiles)
@@ -39,24 +39,24 @@ describe('FilesChangedReaderImpl', () => {
         'actionpack/CHANGELOG.md',
         'actionpack/lib/action_controller/metal/conditional_get.rb',
         'actionpack/lib/action_dispatch/http/cache.rb',
-        'actionpack/test/controller/render_test.rb'
+        'actionpack/test/controller/render_test.rb',
       ]
       const response = {
-        data: [{filename: 'abc.txt'}, {filename: 'def.txt'}]
+        data: [{filename: 'abc.txt'}, {filename: 'def.txt'}],
       } as OctokitResponse<PaginationResults>
       const mapFnMatcher = It.Is<MapFunction>(value =>
         deepEqual(
           value(response, () => {}),
-          ['abc.txt', 'def.txt']
-        )
+          ['abc.txt', 'def.txt'],
+        ),
       )
       octokitMock
         .setup(instance =>
           instance.paginate(
             listFilesMethod,
             {...repo, pull_number: prNumber, per_page: 100},
-            mapFnMatcher
-          )
+            mapFnMatcher,
+          ),
         )
         .returnsAsync(expectedFilesChanged)
 

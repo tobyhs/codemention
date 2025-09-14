@@ -25,7 +25,10 @@ describe('Runner', () => {
   const baseSha = 'bfc5b2d29cfa2db8ce40f6c60bc9629490fe1225'
   let pullRequest: PullRequest
   const configuration: Configuration = yaml.load(
-    fs.readFileSync(path.join(__dirname, 'fixtures', 'codemention.yml'), 'utf8')
+    fs.readFileSync(
+      path.join(__dirname, 'fixtures', 'codemention.yml'),
+      'utf8',
+    ),
   ) as Configuration
 
   beforeEach(() => {
@@ -35,16 +38,16 @@ describe('Runner', () => {
       base: {sha: baseSha},
       draft: false,
       user: {
-        login: 'testlogin'
-      }
+        login: 'testlogin',
+      },
     } as PullRequest
     context = {
       repo,
-      payload: {pull_request: pullRequest}
+      payload: {pull_request: pullRequest},
     } as unknown as Context
 
     configurationReader = new Mock<ConfigurationReader>({
-      injectorConfig: new EqualMatchingInjectorConfig()
+      injectorConfig: new EqualMatchingInjectorConfig(),
     })
       .setup(async instance => instance.read(repo, baseSha))
       .returnsAsync(configuration)
@@ -52,17 +55,17 @@ describe('Runner', () => {
 
     const filesChanged = [
       'config/.env.production',
-      '.github/workflows/codemention.yml'
+      '.github/workflows/codemention.yml',
     ]
     filesChangedReader = new Mock<FilesChangedReader>({
-      injectorConfig: new EqualMatchingInjectorConfig()
+      injectorConfig: new EqualMatchingInjectorConfig(),
     })
       .setup(async instance => instance.read(repo, prNumber))
       .returnsAsync(filesChanged)
       .object()
 
     commentUpserterMock = new Mock<CommentUpserter>({
-      injectorConfig: new EqualMatchingInjectorConfig()
+      injectorConfig: new EqualMatchingInjectorConfig(),
     })
     commentUpserterMock
       .setup(instance => instance.upsert(It.IsAny(), It.IsAny(), It.IsAny()))
@@ -71,7 +74,7 @@ describe('Runner', () => {
     runner = new Runner(
       configurationReader,
       filesChangedReader,
-      commentUpserterMock.object()
+      commentUpserterMock.object(),
     )
   })
 
@@ -82,7 +85,7 @@ describe('Runner', () => {
         await runner.run(context)
         commentUpserterMock.verify(
           instance => instance.upsert(It.IsAny(), It.IsAny(), It.IsAny()),
-          Times.Never()
+          Times.Never(),
         )
       })
     })
@@ -92,18 +95,18 @@ describe('Runner', () => {
       const matchingRules = [
         {
           patterns: ['config/**'],
-          mentions: ['sysadmin']
+          mentions: ['sysadmin'],
         },
         {
           patterns: ['.github/**', 'spec/*.rb'],
-          mentions: ['ci']
-        }
+          mentions: ['ci'],
+        },
       ]
       commentUpserterMock.verify(instance =>
         instance.upsert(repo, prNumber, matchingRules, {
           preamble: 'testing preamble',
-          epilogue: 'testing epilogue'
-        })
+          epilogue: 'testing epilogue',
+        }),
       )
     })
   })
