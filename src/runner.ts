@@ -6,7 +6,6 @@ import micromatch from 'micromatch'
 import {CommentUpserter} from './comment-upserter'
 import {ConfigurationReader} from './configuration-reader'
 import {FilesChangedReader} from './files-changed-reader'
-import {MentionRule} from './configuration'
 
 /**
  * @see {@link run}
@@ -42,25 +41,21 @@ export default class Runner {
       this.filesChangedReader.read(repo, pullRequest.number),
     ])
 
-    const matchingRules = configuration.rules
-      // filter to rules that match
-      .filter(
-        rule => micromatch(filesChanged, rule.patterns, {dot: true}).length > 0,
-      )
-      // filter out the PR author from mentions so that they don't get double-notified
-      .map((rule: MentionRule) => ({
+    const matchedRules = configuration.rules
+      .map(rule => ({
         ...rule,
+        // filter out PR author from mentions so they don't get double-notified
         mentions: rule.mentions.filter(
           mention => mention !== pullRequest.user.login,
         ),
+        matchedFiles: micromatch(filesChanged, rule.patterns, {dot: true}),
       }))
-      // filter out the rules that no longer have mentions due to author filtering
-      .filter(rule => rule.mentions.length > 0)
+      .filter(rule => rule.matchedFiles.length > 0 && rule.mentions.length > 0)
 
     await this.commentUpserter.upsert(
       repo,
       pullRequest.number,
-      matchingRules,
+      matchedRules,
       configuration.commentConfiguration,
     )
   }

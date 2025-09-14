@@ -92,18 +92,20 @@ describe('Runner', () => {
 
     it('runs main logic of the GitHub action', async () => {
       await runner.run(context)
-      const matchingRules = [
+      const matchedRules = [
         {
           patterns: ['config/**'],
           mentions: ['sysadmin'],
+          matchedFiles: ['config/.env.production'],
         },
         {
           patterns: ['.github/**', 'spec/*.rb'],
           mentions: ['ci'],
+          matchedFiles: ['.github/workflows/codemention.yml'],
         },
       ]
       commentUpserterMock.verify(instance =>
-        instance.upsert(repo, prNumber, matchingRules, {
+        instance.upsert(repo, prNumber, matchedRules, {
           preamble: 'testing preamble',
           epilogue: 'testing epilogue',
         }),

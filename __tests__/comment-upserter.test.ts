@@ -33,10 +33,12 @@ describe('CommentUpserterImpl', () => {
       {
         patterns: ['db/migrate/**'],
         mentions: ['cto', 'dba'],
+        matchedFiles: ['db/migrate/20250913000000_test.rb'],
       },
       {
         patterns: ['.github/**', 'spec/*.rb'],
         mentions: ['ci'],
+        matchedFiles: ['.github/codemention.yml', 'spec/spec_helper.rb'],
       },
     ]
 
@@ -138,18 +140,18 @@ describe('CommentUpserterImpl', () => {
           const template = dedent`
             # CodeMention
             {{#each matchedRules}}
-            {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}}:
-            {{#each patterns}}{{#markdownEscape}}{{this}}{{/markdownEscape}}{{#unless @last}}, {{/unless}}{{/each}}
+            {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}} ({{#each patterns}}{{#markdownEscape}}{{this}}{{/markdownEscape}}{{#unless @last}}, {{/unless}}{{/each}}):
+            {{#each matchedFiles}}{{#markdownEscape}}{{this}}{{/markdownEscape}}{{#unless @last}}, {{/unless}}{{/each}}
 
             {{/each}}
           `
           const expectedCommentBody = dedent`
             # CodeMention
-            @cto, @dba:
-            db/migrate/\*\*
+            @cto, @dba (db/migrate/\*\*):
+            db/migrate/20250913000000\_test.rb
 
-            @ci:
-            .github/\*\*, spec/\*.rb
+            @ci (.github/\*\*, spec/\*.rb):
+            .github/codemention.yml, spec/spec\_helper.rb
 
             ${FOOTER}
           `

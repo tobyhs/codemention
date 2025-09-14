@@ -3,8 +3,9 @@ import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-ty
 import Handlebars, {HelperOptions} from 'handlebars'
 import markdownEscape from 'markdown-escape'
 
-import {CommentConfiguration, MentionRule} from './configuration'
+import {CommentConfiguration} from './configuration'
 import {Repo} from './github-types'
+import {MatchedRule} from './matched-rule'
 
 export const FOOTER = '<!-- codemention header -->'
 
@@ -44,7 +45,7 @@ export interface CommentUpserter {
   upsert(
     repo: Repo,
     pullNumber: number,
-    rules: MentionRule[],
+    rules: MatchedRule[],
     commentConfiguration?: CommentConfiguration,
   ): Promise<void>
 }
@@ -59,7 +60,7 @@ export class CommentUpserterImpl implements CommentUpserter {
   async upsert(
     repo: Repo,
     pullNumber: number,
-    rules: MentionRule[],
+    rules: MatchedRule[],
     commentConfiguration?: CommentConfiguration,
   ): Promise<void> {
     const issuesApi = this.octokitRest.issues
@@ -107,7 +108,7 @@ export class CommentUpserterImpl implements CommentUpserter {
    * @returns text to be used in a GitHub pull request comment body
    */
   private createCommentBody(
-    rules: MentionRule[],
+    rules: MatchedRule[],
     commentConfiguration?: CommentConfiguration,
   ): string {
     const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
