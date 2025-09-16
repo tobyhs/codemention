@@ -140,8 +140,8 @@ describe('CommentUpserterImpl', () => {
           const template = dedent`
             # CodeMention
             {{#each matchedRules}}
-            {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}} ({{#each patterns}}{{#markdownEscape}}{{this}}{{/markdownEscape}}{{#unless @last}}, {{/unless}}{{/each}}):
-            {{#each matchedFiles}}{{#markdownEscape}}{{this}}{{/markdownEscape}}{{#unless @last}}, {{/unless}}{{/each}}
+            {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}} ({{#each patterns}}{{markdownEscape this}}{{#unless @last}}, {{/unless}}{{/each}}):
+            {{#each matchedFiles}}{{markdownEscape this}}{{#unless @last}}, {{/unless}}{{/each}}
 
             {{/each}}
           `

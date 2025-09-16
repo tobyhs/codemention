@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
-import Handlebars, {HelperOptions} from 'handlebars'
+import Handlebars from 'handlebars'
 import markdownEscape from 'markdown-escape'
 
 import {CommentConfiguration} from './configuration'
@@ -13,8 +13,8 @@ export const DEFAULT_COMMENT_PREAMBLE =
   '[CodeMention](https://github.com/tobyhs/codemention):'
 
 const HANDLEBARS_HELPERS = {
-  markdownEscape(options: HelperOptions): string {
-    return markdownEscape(options.fn(this), ['slashes'])
+  markdownEscape(text: string): string {
+    return markdownEscape(text, ['slashes'])
   },
 }
 
@@ -22,7 +22,7 @@ const DEFAULT_TEMPLATE = `{{preamble}}
 | File Patterns | Mentions |
 | - | - |
 {{#each matchedRules}}
-| {{#each patterns}}{{#markdownEscape}}{{this}}{{/markdownEscape}}{{#unless @last}}<br>{{/unless}}{{/each}} | {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}} |
+| {{#each patterns}}{{markdownEscape this}}{{#unless @last}}<br>{{/unless}}{{/each}} | {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}} |
 {{/each}}
 
 {{#if epilogue}}
