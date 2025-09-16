@@ -5,7 +5,7 @@ import markdownEscape from 'markdown-escape'
 
 import {CommentConfiguration} from './configuration'
 import {Repo} from './github-types'
-import {MatchedRule} from './matched-rule'
+import {MatchedRule, TemplateContext} from './template-types'
 
 export const FOOTER = '<!-- codemention header -->'
 
@@ -112,14 +112,14 @@ export class CommentUpserterImpl implements CommentUpserter {
     commentConfiguration?: CommentConfiguration,
   ): string {
     const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
-    const comment = Handlebars.compile(template, {noEscape: true})(
-      {
-        matchedRules: rules,
-        preamble: commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
-        epilogue: commentConfiguration?.epilogue,
-      },
-      {helpers: HANDLEBARS_HELPERS},
-    )
+    const context: TemplateContext = {
+      matchedRules: rules,
+      preamble: commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
+      epilogue: commentConfiguration?.epilogue,
+    }
+    const comment = Handlebars.compile(template, {noEscape: true})(context, {
+      helpers: HANDLEBARS_HELPERS,
+    })
     return `${comment}${FOOTER}`
   }
 }
