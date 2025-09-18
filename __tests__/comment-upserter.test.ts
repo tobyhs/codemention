@@ -136,7 +136,7 @@ describe('CommentUpserterImpl', () => {
           )
         })
 
-        it('creates a comment with a custom template', async () => {
+        it('creates a comment with a custom template with matchedRules', async () => {
           const template = dedent`
             # CodeMention
             {{#each matchedRules}}
@@ -153,6 +153,49 @@ describe('CommentUpserterImpl', () => {
             @ci (.github/\*\*, spec/\*.rb):
             .github/codemention.yml, spec/spec\_helper.rb
 
+            ${FOOTER}
+          `
+
+          await upserter.upsert(repo, pullNumber, rules, {template})
+
+          issuesMock.verify(instance =>
+            instance.createComment({
+              ...repo,
+              issue_number: pullNumber,
+              body: expectedCommentBody,
+            }),
+          )
+        })
+
+        it('creates a comment with a custom template with mentions', async () => {
+          const rules = [
+            {
+              patterns: ['db/migrate/**'],
+              mentions: ['cto', 'dba'],
+              matchedFiles: ['db/migrate/20250913000000_test.rb'],
+            },
+            {
+              patterns: ['.github/**', 'spec/*.rb'],
+              mentions: ['ci'],
+              matchedFiles: ['.github/codemention.yml', 'spec/spec_helper.rb'],
+            },
+            {
+              patterns: ['config/environments/*.rb'],
+              mentions: ['infra', 'cto'],
+              matchedFiles: ['config/environments/production.rb'],
+            },
+          ]
+
+          const template = dedent`
+            {{#each mentions}}
+            @{{name}}: {{#each matchedFiles}}{{markdownEscape this}}{{#unless @last}}, {{/unless}}{{/each}}
+            {{/each}}
+          `
+          const expectedCommentBody = dedent`
+            @ci: .github/codemention.yml, spec/spec\_helper.rb
+            @cto: config/environments/production.rb, db/migrate/20250913000000\_test.rb
+            @dba: db/migrate/20250913000000\_test.rb
+            @infra: config/environments/production.rb
             ${FOOTER}
           `
 

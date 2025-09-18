@@ -5,7 +5,7 @@ import markdownEscape from 'markdown-escape'
 
 import {CommentConfiguration} from './configuration'
 import {Repo} from './github-types'
-import {MatchedRule, TemplateContext} from './template-types'
+import {MatchedRule, Mention, TemplateContext} from './template-types'
 
 export const FOOTER = '<!-- codemention header -->'
 
@@ -114,6 +114,7 @@ export class CommentUpserterImpl implements CommentUpserter {
     const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
     const context: TemplateContext = {
       matchedRules: rules,
+      mentions: this.createMentionsList(rules),
       preamble: commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
       epilogue: commentConfiguration?.epilogue,
     }
@@ -121,5 +122,26 @@ export class CommentUpserterImpl implements CommentUpserter {
       helpers: HANDLEBARS_HELPERS,
     })
     return `${comment}${FOOTER}`
+  }
+
+  private createMentionsList(rules: MatchedRule[]): Mention[] {
+    const namesToFiles = new Map<string, Set<string>>()
+    for (const rule of rules) {
+      for (const name of rule.mentions) {
+        let fileSet = namesToFiles.get(name)
+        if (!fileSet) {
+          fileSet = new Set<string>()
+          namesToFiles.set(name, fileSet)
+        }
+        for (const file of rule.matchedFiles) {
+          fileSet.add(file)
+        }
+      }
+    }
+    const mentions: Mention[] = []
+    for (const [name, fileSet] of namesToFiles) {
+      mentions.push({name, matchedFiles: [...fileSet].sort()})
+    }
+    return mentions.sort((a, b) => a.name.localeCompare(b.name))
   }
 }
