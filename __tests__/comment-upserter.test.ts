@@ -1,8 +1,8 @@
-import {beforeEach, describe, it} from '@jest/globals'
+import {beforeEach, describe, expect, it} from '@jest/globals'
 import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import dedent from 'dedent'
-import {EqualMatchingInjectorConfig, It, Mock, Times} from 'moq.ts'
+import {MockProxy, mockDeep} from 'jest-mock-extended'
 
 import {
   CommentUpserterImpl,
@@ -10,19 +10,16 @@ import {
   FOOTER,
 } from '../src/comment-upserter'
 import {Repo} from '../src/github-types'
+import {deepEqualsMatch} from './matchers'
 
 describe('CommentUpserterImpl', () => {
-  let issuesMock: Mock<RestEndpointMethods['issues']>
+  let issuesMock: MockProxy<RestEndpointMethods['issues']>
   let upserter: CommentUpserterImpl
 
   beforeEach(() => {
-    issuesMock = new Mock<RestEndpointMethods['issues']>({
-      injectorConfig: new EqualMatchingInjectorConfig(),
-    })
-    const octokitRestMock = new Mock<RestEndpointMethods>()
-      .setup(instance => instance.issues)
-      .returns(issuesMock.object())
-    upserter = new CommentUpserterImpl(octokitRestMock.object())
+    const octokitRestMock = mockDeep<RestEndpointMethods>()
+    issuesMock = octokitRestMock.issues
+    upserter = new CommentUpserterImpl(octokitRestMock)
   })
 
   describe('.upsert', () => {
@@ -50,11 +47,9 @@ describe('CommentUpserterImpl', () => {
         })),
       } as RestEndpointMethodTypes['issues']['listComments']['response']
 
-      issuesMock
-        .setup(instance =>
-          instance.listComments({...repo, issue_number: pullNumber}),
-        )
-        .returnsAsync(listResponse)
+      issuesMock.listComments
+        .calledWith(deepEqualsMatch({...repo, issue_number: pullNumber}))
+        .mockResolvedValue(listResponse)
     }
 
     describe('when a codemention comment does not exist', () => {
@@ -65,28 +60,12 @@ describe('CommentUpserterImpl', () => {
       describe('and there are no applicable mention rules', () => {
         it('does not insert or update a comment', async () => {
           await upserter.upsert(repo, pullNumber, [])
-          issuesMock.verify(
-            instance => instance.createComment(It.IsAny()),
-            Times.Never(),
-          )
-          issuesMock.verify(
-            instance => instance.updateComment(It.IsAny()),
-            Times.Never(),
-          )
+          expect(issuesMock.createComment).toHaveBeenCalledTimes(0)
+          expect(issuesMock.updateComment).toHaveBeenCalledTimes(0)
         })
       })
 
       describe('and there are matching rules', () => {
-        beforeEach(() => {
-          issuesMock
-            .setup(instance => instance.createComment(It.IsAny()))
-            .returnsAsync(
-              new Mock<
-                RestEndpointMethodTypes['issues']['createComment']['response']
-              >().object(),
-            )
-        })
-
         it('creates a comment', async () => {
           const expectedCommentBody = dedent`
             ${DEFAULT_COMMENT_PREAMBLE}
@@ -100,13 +79,11 @@ describe('CommentUpserterImpl', () => {
 
           await upserter.upsert(repo, pullNumber, rules)
 
-          issuesMock.verify(instance =>
-            instance.createComment({
-              ...repo,
-              issue_number: pullNumber,
-              body: expectedCommentBody,
-            }),
-          )
+          expect(issuesMock.createComment).toHaveBeenCalledWith({
+            ...repo,
+            issue_number: pullNumber,
+            body: expectedCommentBody,
+          })
         })
 
         it('creates a comment with custom comment content', async () => {
@@ -127,13 +104,11 @@ describe('CommentUpserterImpl', () => {
 
           await upserter.upsert(repo, pullNumber, rules, customContent)
 
-          issuesMock.verify(instance =>
-            instance.createComment({
-              ...repo,
-              issue_number: pullNumber,
-              body: expectedCommentBody,
-            }),
-          )
+          expect(issuesMock.createComment).toHaveBeenCalledWith({
+            ...repo,
+            issue_number: pullNumber,
+            body: expectedCommentBody,
+          })
         })
 
         it('creates a comment with a custom template with matchedRules', async () => {
@@ -158,13 +133,11 @@ describe('CommentUpserterImpl', () => {
 
           await upserter.upsert(repo, pullNumber, rules, {template})
 
-          issuesMock.verify(instance =>
-            instance.createComment({
-              ...repo,
-              issue_number: pullNumber,
-              body: expectedCommentBody,
-            }),
-          )
+          expect(issuesMock.createComment).toHaveBeenCalledWith({
+            ...repo,
+            issue_number: pullNumber,
+            body: expectedCommentBody,
+          })
         })
 
         it('creates a comment with a custom template with mentions', async () => {
@@ -201,13 +174,11 @@ describe('CommentUpserterImpl', () => {
 
           await upserter.upsert(repo, pullNumber, rules, {template})
 
-          issuesMock.verify(instance =>
-            instance.createComment({
-              ...repo,
-              issue_number: pullNumber,
-              body: expectedCommentBody,
-            }),
-          )
+          expect(issuesMock.createComment).toHaveBeenCalledWith({
+            ...repo,
+            issue_number: pullNumber,
+            body: expectedCommentBody,
+          })
         })
       })
     })
@@ -231,23 +202,13 @@ describe('CommentUpserterImpl', () => {
               FOOTER + '| config/brakeman.yml | @security |'
             stubListComments(['First', existingComment])
 
-            issuesMock
-              .setup(instance => instance.updateComment(It.IsAny()))
-              .returnsAsync(
-                new Mock<
-                  RestEndpointMethodTypes['issues']['updateComment']['response']
-                >().object(),
-              )
-
             await upserter.upsert(repo, pullNumber, rules)
 
-            issuesMock.verify(instance =>
-              instance.updateComment({
-                ...repo,
-                comment_id: 2,
-                body: expectedCommentBody,
-              }),
-            )
+            expect(issuesMock.updateComment).toHaveBeenCalledWith({
+              ...repo,
+              comment_id: 2,
+              body: expectedCommentBody,
+            })
           })
         })
 
@@ -267,23 +228,13 @@ describe('CommentUpserterImpl', () => {
               '| config/brakeman.yml | @security |' + FOOTER
             stubListComments(['First', existingComment])
 
-            issuesMock
-              .setup(instance => instance.updateComment(It.IsAny()))
-              .returnsAsync(
-                new Mock<
-                  RestEndpointMethodTypes['issues']['updateComment']['response']
-                >().object(),
-              )
-
             await upserter.upsert(repo, pullNumber, rules)
 
-            issuesMock.verify(instance =>
-              instance.updateComment({
-                ...repo,
-                comment_id: 2,
-                body: expectedCommentBody,
-              }),
-            )
+            expect(issuesMock.updateComment).toHaveBeenCalledWith({
+              ...repo,
+              comment_id: 2,
+              body: expectedCommentBody,
+            })
           })
         })
       })
@@ -303,10 +254,7 @@ describe('CommentUpserterImpl', () => {
           stubListComments(['First', commentBody])
           await upserter.upsert(repo, pullNumber, rules)
 
-          issuesMock.verify(
-            instance => instance.updateComment(It.IsAny()),
-            Times.Never(),
-          )
+          expect(issuesMock.updateComment).toHaveBeenCalledTimes(0)
         })
       })
     })

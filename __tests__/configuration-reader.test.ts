@@ -2,26 +2,23 @@ import {beforeEach, describe, expect, it} from '@jest/globals'
 import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import * as fs from 'fs'
+import {MockProxy, mockDeep} from 'jest-mock-extended'
 import * as yaml from 'js-yaml'
-import {EqualMatchingInjectorConfig, Mock} from 'moq.ts'
 import * as path from 'path'
 
 import {Configuration} from '../src/configuration'
 import {ConfigurationReaderImpl} from '../src/configuration-reader'
 import {Repo} from '../src/github-types'
+import {deepEqualsMatch} from './matchers'
 
 describe('ConfigurationReaderImpl', () => {
-  let reposMock: Mock<RestEndpointMethods['repos']>
+  let reposMock: MockProxy<RestEndpointMethods['repos']>
   let reader: ConfigurationReaderImpl
 
   beforeEach(() => {
-    reposMock = new Mock<RestEndpointMethods['repos']>({
-      injectorConfig: new EqualMatchingInjectorConfig(),
-    })
-    const octokitRestMock = new Mock<RestEndpointMethods>()
-      .setup(instance => instance.repos)
-      .returns(reposMock.object())
-    reader = new ConfigurationReaderImpl(octokitRestMock.object())
+    const octokitRest = mockDeep<RestEndpointMethods>()
+    reposMock = octokitRest.repos
+    reader = new ConfigurationReaderImpl(octokitRest)
   })
 
   describe('.read', () => {
@@ -32,11 +29,11 @@ describe('ConfigurationReaderImpl', () => {
       const response = {
         data,
       } as RestEndpointMethodTypes['repos']['getContent']['response']
-      reposMock
-        .setup(instance =>
-          instance.getContent({...repo, path: '.github/codemention.yml', ref}),
+      reposMock.getContent
+        .calledWith(
+          deepEqualsMatch({...repo, path: '.github/codemention.yml', ref}),
         )
-        .returnsAsync(response)
+        .mockResolvedValue(response)
     }
 
     it('returns configuration from .github/codemention.yml', async () => {

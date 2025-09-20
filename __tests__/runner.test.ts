@@ -1,9 +1,9 @@
 import {Context} from '@actions/github/lib/context'
-import {beforeEach, describe, it} from '@jest/globals'
+import {beforeEach, describe, expect, it} from '@jest/globals'
 import {PullRequest} from '@octokit/webhooks-types/schema.d'
 import * as fs from 'fs'
+import {MockProxy, mock} from 'jest-mock-extended'
 import * as yaml from 'js-yaml'
-import {EqualMatchingInjectorConfig, It, Mock, Times} from 'moq.ts'
 import * as path from 'path'
 
 import {CommentUpserter} from '../src/comment-upserter'
@@ -14,9 +14,9 @@ import {Repo} from '../src/github-types'
 import Runner from '../src/runner'
 
 describe('Runner', () => {
-  let configurationReader: ConfigurationReader
-  let filesChangedReader: FilesChangedReader
-  let commentUpserterMock: Mock<CommentUpserter>
+  let configurationReader: MockProxy<ConfigurationReader>
+  let filesChangedReader: MockProxy<FilesChangedReader>
+  let commentUpserter: MockProxy<CommentUpserter>
   let runner: Runner
 
   let repo: Repo
@@ -46,35 +46,26 @@ describe('Runner', () => {
       payload: {pull_request: pullRequest},
     } as unknown as Context
 
-    configurationReader = new Mock<ConfigurationReader>({
-      injectorConfig: new EqualMatchingInjectorConfig(),
-    })
-      .setup(async instance => instance.read(repo, baseSha))
-      .returnsAsync(configuration)
-      .object()
+    configurationReader = mock<ConfigurationReader>()
+    configurationReader.read
+      .calledWith(repo, baseSha)
+      .mockResolvedValue(configuration)
 
     const filesChanged = [
       'config/.env.production',
       '.github/workflows/codemention.yml',
     ]
-    filesChangedReader = new Mock<FilesChangedReader>({
-      injectorConfig: new EqualMatchingInjectorConfig(),
-    })
-      .setup(async instance => instance.read(repo, prNumber))
-      .returnsAsync(filesChanged)
-      .object()
+    filesChangedReader = mock<FilesChangedReader>()
+    filesChangedReader.read
+      .calledWith(repo, prNumber)
+      .mockResolvedValue(filesChanged)
 
-    commentUpserterMock = new Mock<CommentUpserter>({
-      injectorConfig: new EqualMatchingInjectorConfig(),
-    })
-    commentUpserterMock
-      .setup(instance => instance.upsert(It.IsAny(), It.IsAny(), It.IsAny()))
-      .returns(Promise.resolve())
+    commentUpserter = mock<CommentUpserter>()
 
     runner = new Runner(
       configurationReader,
       filesChangedReader,
-      commentUpserterMock.object(),
+      commentUpserter,
     )
   })
 
@@ -83,10 +74,7 @@ describe('Runner', () => {
       it('does not upsert a comment', async () => {
         pullRequest.draft = true
         await runner.run(context)
-        commentUpserterMock.verify(
-          instance => instance.upsert(It.IsAny(), It.IsAny(), It.IsAny()),
-          Times.Never(),
-        )
+        expect(commentUpserter.upsert).toHaveBeenCalledTimes(0)
       })
     })
 
@@ -104,11 +92,11 @@ describe('Runner', () => {
           matchedFiles: ['.github/workflows/codemention.yml'],
         },
       ]
-      commentUpserterMock.verify(instance =>
-        instance.upsert(repo, prNumber, matchedRules, {
-          preamble: 'testing preamble',
-          epilogue: 'testing epilogue',
-        }),
+      expect(commentUpserter.upsert).toHaveBeenCalledWith(
+        repo,
+        prNumber,
+        matchedRules,
+        {preamble: 'testing preamble', epilogue: 'testing epilogue'},
       )
     })
   })

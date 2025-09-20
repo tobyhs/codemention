@@ -4,30 +4,26 @@ import {
   MapFunction,
   PaginationResults,
 } from '@octokit/plugin-paginate-rest/dist-types/types'
-import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
-import {OctokitResponse} from '@octokit/types'
+import {OctokitResponse, RequestInterface} from '@octokit/types'
 import deepEqual from 'deep-equal'
-import {EqualMatchingInjectorConfig, It, Mock} from 'moq.ts'
+import {
+  CalledWithMock,
+  DeepMockProxy,
+  Matcher,
+  mockDeep,
+} from 'jest-mock-extended'
 
 import {FilesChangedReaderImpl} from '../src/files-changed-reader'
 import {Repo} from '../src/github-types'
-
-type ListFilesMethod = RestEndpointMethods['pulls']['listFiles']
+import {deepEqualsMatch} from './matchers'
 
 describe('FilesChangedReaderImpl', () => {
-  let listFilesMethod: ListFilesMethod
-  let octokitMock: Mock<InstanceType<typeof GitHub>>
+  let octokit: DeepMockProxy<InstanceType<typeof GitHub>>
   let reader: FilesChangedReaderImpl
 
   beforeEach(() => {
-    listFilesMethod = new Mock<ListFilesMethod>().object()
-    octokitMock = new Mock<InstanceType<typeof GitHub>>({
-      injectorConfig: new EqualMatchingInjectorConfig(),
-    })
-    octokitMock
-      .setup(instance => instance.rest.pulls.listFiles)
-      .returns(listFilesMethod)
-    reader = new FilesChangedReaderImpl(octokitMock.object())
+    octokit = mockDeep<InstanceType<typeof GitHub>>()
+    reader = new FilesChangedReaderImpl(octokit)
   })
 
   describe('.read', () => {
@@ -44,21 +40,29 @@ describe('FilesChangedReaderImpl', () => {
       const response = {
         data: [{filename: 'abc.txt'}, {filename: 'def.txt'}],
       } as OctokitResponse<PaginationResults>
-      const mapFnMatcher = It.Is<MapFunction>(value =>
-        deepEqual(
-          value(response, () => {}),
-          ['abc.txt', 'def.txt'],
-        ),
-      )
-      octokitMock
-        .setup(instance =>
-          instance.paginate(
-            listFilesMethod,
-            {...repo, pull_number: prNumber, per_page: 100},
-            mapFnMatcher,
+      const mapFnMatcher = new Matcher<MapFunction>(
+        actual =>
+          deepEqual(
+            actual(response, () => {}),
+            ['abc.txt', 'def.txt'],
           ),
+        'mapFnMatcher',
+      )
+      // Function overloading is broken in jest-mock-extended 4.0.0:
+      // https://github.com/marchaos/jest-mock-extended/issues/140
+      type PaginateType = <R extends RequestInterface, M extends unknown[]>(
+        request: R,
+        parameters: Parameters<R>[0],
+        mapFn: MapFunction,
+      ) => Promise<M>
+      const paginateFn = octokit.paginate as CalledWithMock<PaginateType>
+      paginateFn
+        .calledWith(
+          octokit.rest.pulls.listFiles,
+          deepEqualsMatch({...repo, pull_number: prNumber, per_page: 100}),
+          mapFnMatcher,
         )
-        .returnsAsync(expectedFilesChanged)
+        .mockResolvedValue(expectedFilesChanged)
 
       const actualFilesChanged = await reader.read(repo, prNumber)
       expect(actualFilesChanged).toEqual(expectedFilesChanged)

@@ -4,7 +4,7 @@ import {GitHub} from '@actions/github/lib/utils'
 import {beforeEach, describe, expect, it, jest} from '@jest/globals'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
 import {randomUUID} from 'crypto'
-import {Mock} from 'moq.ts'
+import {mockDeep} from 'jest-mock-extended'
 
 import {CommentUpserterImpl} from '../src/comment-upserter'
 import {ConfigurationReaderImpl} from '../src/configuration-reader'
@@ -34,11 +34,8 @@ describe('run', () => {
       }
     })
 
-    octokitRest = new Mock<RestEndpointMethods>().object()
-    octokit = new Mock<InstanceType<typeof GitHub>>()
-      .setup(instance => instance.rest)
-      .returns(octokitRest)
-      .object()
+    octokit = mockDeep<InstanceType<typeof GitHub>>()
+    octokitRest = octokit.rest
     jest.mocked(github).getOctokit.mockReturnValue(octokit)
   })
 
