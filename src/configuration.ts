@@ -13,8 +13,14 @@ export interface MentionRule {
  * A set of configuration items for the comment posted by the bot
  */
 export interface CommentConfiguration {
-  /** Handlebars template for the pull request comment to create */
+  /**
+   * Handlebars template for the pull request comment to create.
+   *
+   * See the TemplateContext interface in template-types.ts for the variables
+   * you can use.
+   */
   template?: string
+
   /** Comment content to print above matching rules table */
   preamble?: string
   /** Comment content to print below matching rules table */
