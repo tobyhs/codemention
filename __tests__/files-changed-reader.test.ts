@@ -5,7 +5,7 @@ import {
   PaginationResults,
 } from '@octokit/plugin-paginate-rest/dist-types/types'
 import {OctokitResponse, RequestInterface} from '@octokit/types'
-import deepEqual from 'deep-equal'
+import deepEqual from 'fast-deep-equal'
 import {
   CalledWithMock,
   DeepMockProxy,
