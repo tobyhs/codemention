@@ -19,11 +19,11 @@ const compat = new FlatCompat({
 
 export default defineConfig([
   globalIgnores([
+    '**/coverage',
     '**/dist/',
     '**/lib/',
     '**/node_modules/',
     '**/jest.config.js',
-    '__tests__',
     'run.js',
   ]),
   {
@@ -113,6 +113,13 @@ export default defineConfig([
       '@typescript-eslint/restrict-plus-operands': 'error',
       semi: 'off',
       '@typescript-eslint/unbound-method': 'error',
+    },
+  },
+  {
+    files: ['__tests__/**'],
+    rules: {
+      '@typescript-eslint/unbound-method': 'off',
+      'jest/unbound-method': 'error',
     },
   },
 ])

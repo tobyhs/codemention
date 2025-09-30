@@ -23,9 +23,9 @@ describe('ConfigurationReaderImpl', () => {
 
   describe('.read', () => {
     const repo: Repo = {owner: 'tobyhs', repo: 'codemention'}
-    const ref: string = '7b5c561a5c3a2a2a61d7ff05c3b1dd30df4b89f9'
+    const ref = '7b5c561a5c3a2a2a61d7ff05c3b1dd30df4b89f9'
 
-    const stubGetContent = function (data: {content?: string}) {
+    const stubGetContent = function (data: {content?: string}): void {
       const response = {
         data,
       } as RestEndpointMethodTypes['repos']['getContent']['response']
