@@ -3,6 +3,7 @@ import {Context} from '@actions/github/lib/context'
 import {PullRequestEvent} from '@octokit/webhooks-types/schema.d'
 import micromatch from 'micromatch'
 
+import {CommentRenderer} from './comment-renderer'
 import {CommentUpserter} from './comment-upserter'
 import {ConfigurationReader} from './configuration-reader'
 import {FilesChangedReader} from './files-changed-reader'
@@ -14,11 +15,13 @@ export default class Runner {
   /**
    * @param configurationReader - object to read a repo's codemention.yml file
    * @param filesChangedReader - object to retrieve files changed in a pull request
+   * @param commentRenderer - object to create the pull request comment body
    * @param commentUpserter - object to upsert pull request comments
    */
   constructor(
     private readonly configurationReader: ConfigurationReader,
     private readonly filesChangedReader: FilesChangedReader,
+    private readonly commentRenderer: CommentRenderer,
     private readonly commentUpserter: CommentUpserter,
   ) {}
 
@@ -52,11 +55,16 @@ export default class Runner {
       }))
       .filter(rule => rule.matchedFiles.length > 0 && rule.mentions.length > 0)
 
+    const comment = this.commentRenderer.render(
+      matchedRules,
+      configuration.commentConfiguration,
+    )
+
     await this.commentUpserter.upsert(
       repo,
       pullRequest.number,
       matchedRules,
-      configuration.commentConfiguration,
+      comment,
     )
   }
 }

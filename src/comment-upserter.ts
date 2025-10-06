@@ -1,34 +1,9 @@
 import * as core from '@actions/core'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
-import Handlebars from 'handlebars'
-import markdownEscape from 'markdown-escape'
 
-import {CommentConfiguration} from './configuration'
+import {FOOTER} from './comment-renderer'
 import {Repo} from './github-types'
-import {MatchedRule, Mention, TemplateContext} from './template-types'
-
-export const FOOTER = '<!-- codemention header -->'
-
-export const DEFAULT_COMMENT_PREAMBLE =
-  '[CodeMention](https://github.com/tobyhs/codemention):'
-
-const HANDLEBARS_HELPERS = {
-  markdownEscape(text: string): string {
-    return markdownEscape(text, ['slashes'])
-  },
-}
-
-const DEFAULT_TEMPLATE = `{{preamble}}
-| File Patterns | Mentions |
-| - | - |
-{{#each matchedRules}}
-| {{#each patterns}}{{markdownEscape this}}{{#unless @last}}<br>{{/unless}}{{/each}} | {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}} |
-{{/each}}
-
-{{#if epilogue}}
-{{epilogue}}
-{{/if}}
-`
+import {MatchedRule} from './template-types'
 
 /**
  * @see {@link upsert}
@@ -40,13 +15,13 @@ export interface CommentUpserter {
    * @param repo - repository that the pull request is in
    * @param pullNumber - number that identifies the pull request
    * @param rules - mention rules to use in the comment
-   * @param commentConfiguration - comment configuration for the upserted comment
+   * @param comment - comment to insert/update
    */
   upsert(
     repo: Repo,
     pullNumber: number,
     rules: MatchedRule[],
-    commentConfiguration?: CommentConfiguration,
+    comment: string,
   ): Promise<void>
 }
 
@@ -61,7 +36,7 @@ export class CommentUpserterImpl implements CommentUpserter {
     repo: Repo,
     pullNumber: number,
     rules: MatchedRule[],
-    commentConfiguration?: CommentConfiguration,
+    comment: string,
   ): Promise<void> {
     const issuesApi = this.octokitRest.issues
     const listResponse = await issuesApi.listComments({
@@ -75,8 +50,6 @@ export class CommentUpserterImpl implements CommentUpserter {
         // keep backwards compatibility with existing comments that have the comment first
         (c.body.startsWith(FOOTER) || c.body.endsWith(FOOTER)),
     )
-    const commentBody = this.createCommentBody(rules, commentConfiguration)
-
     if (existingComment === undefined) {
       if (rules.length > 0) {
         core.info('Creating a pull request comment')
@@ -84,64 +57,21 @@ export class CommentUpserterImpl implements CommentUpserter {
           owner: repo.owner,
           repo: repo.repo,
           issue_number: pullNumber,
-          body: commentBody,
+          body: comment,
         })
       } else {
         core.info('Not creating a pull request comment. No rules matched.')
       }
-    } else if (existingComment.body !== commentBody) {
+    } else if (existingComment.body !== comment) {
       core.info('Updating pull request comment')
       await issuesApi.updateComment({
         owner: repo.owner,
         repo: repo.repo,
         comment_id: existingComment.id,
-        body: commentBody,
+        body: comment,
       })
     } else {
       core.info('Not updating pull request comment. Comment body matched.')
     }
-  }
-
-  /**
-   * @param rules - mention rules to use in the comment
-   * @param commentConfiguration - comment configuration for the upserted comment
-   * @returns text to be used in a GitHub pull request comment body
-   */
-  private createCommentBody(
-    rules: MatchedRule[],
-    commentConfiguration?: CommentConfiguration,
-  ): string {
-    const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
-    const context: TemplateContext = {
-      matchedRules: rules,
-      mentions: this.createMentionsList(rules),
-      preamble: commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
-      epilogue: commentConfiguration?.epilogue,
-    }
-    const comment = Handlebars.compile(template, {noEscape: true})(context, {
-      helpers: HANDLEBARS_HELPERS,
-    })
-    return `${comment}${FOOTER}`
-  }
-
-  private createMentionsList(rules: MatchedRule[]): Mention[] {
-    const namesToFiles = new Map<string, Set<string>>()
-    for (const rule of rules) {
-      for (const name of rule.mentions) {
-        let fileSet = namesToFiles.get(name)
-        if (!fileSet) {
-          fileSet = new Set<string>()
-          namesToFiles.set(name, fileSet)
-        }
-        for (const file of rule.matchedFiles) {
-          fileSet.add(file)
-        }
-      }
-    }
-    const mentions: Mention[] = []
-    for (const [name, fileSet] of namesToFiles) {
-      mentions.push({name, matchedFiles: [...fileSet].sort()})
-    }
-    return mentions.sort((a, b) => a.name.localeCompare(b.name))
   }
 }

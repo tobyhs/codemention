@@ -6,16 +6,19 @@ import {MockProxy, mock} from 'jest-mock-extended'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
 
+import {CommentRenderer} from '../src/comment-renderer'
 import {CommentUpserter} from '../src/comment-upserter'
 import {Configuration} from '../src/configuration'
 import {ConfigurationReader} from '../src/configuration-reader'
 import {FilesChangedReader} from '../src/files-changed-reader'
 import {Repo} from '../src/github-types'
 import Runner from '../src/runner'
+import {deepEqualsMatch} from './matchers'
 
 describe('Runner', () => {
   let configurationReader: MockProxy<ConfigurationReader>
   let filesChangedReader: MockProxy<FilesChangedReader>
+  let commentRenderer: MockProxy<CommentRenderer>
   let commentUpserter: MockProxy<CommentUpserter>
   let runner: Runner
 
@@ -60,11 +63,13 @@ describe('Runner', () => {
       .calledWith(repo, prNumber)
       .mockResolvedValue(filesChanged)
 
+    commentRenderer = mock<CommentRenderer>()
     commentUpserter = mock<CommentUpserter>()
 
     runner = new Runner(
       configurationReader,
       filesChangedReader,
+      commentRenderer,
       commentUpserter,
     )
   })
@@ -79,7 +84,6 @@ describe('Runner', () => {
     })
 
     it('runs main logic of the GitHub action', async () => {
-      await runner.run(context)
       const matchedRules = [
         {
           patterns: ['config/**'],
@@ -92,11 +96,24 @@ describe('Runner', () => {
           matchedFiles: ['.github/workflows/codemention.yml'],
         },
       ]
+      const comment = 'Test Comment'
+      commentRenderer.render
+        .calledWith(
+          deepEqualsMatch(matchedRules),
+          deepEqualsMatch({
+            preamble: 'testing preamble',
+            epilogue: 'testing epilogue',
+          }),
+        )
+        .mockReturnValue(comment)
+
+      await runner.run(context)
+
       expect(commentUpserter.upsert).toHaveBeenCalledWith(
         repo,
         prNumber,
         matchedRules,
-        {preamble: 'testing preamble', epilogue: 'testing epilogue'},
+        comment,
       )
     })
   })

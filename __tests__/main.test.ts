@@ -6,6 +6,7 @@ import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-ty
 import {randomUUID} from 'crypto'
 import {mockDeep} from 'jest-mock-extended'
 
+import {CommentRendererImpl} from '../src/comment-renderer'
 import {CommentUpserterImpl} from '../src/comment-upserter'
 import {ConfigurationReaderImpl} from '../src/configuration-reader'
 import {FilesChangedReaderImpl} from '../src/files-changed-reader'
@@ -15,6 +16,7 @@ import Runner from '../src/runner'
 jest.mock('@actions/core')
 jest.mock('@actions/github')
 
+jest.mock('../src/comment-renderer')
 jest.mock('../src/comment-upserter')
 jest.mock('../src/configuration-reader')
 jest.mock('../src/files-changed-reader')
@@ -52,6 +54,7 @@ describe('run', () => {
     expect(jest.mocked(Runner)).toHaveBeenCalledWith(
       jest.mocked(ConfigurationReaderImpl).mock.instances[0],
       jest.mocked(FilesChangedReaderImpl).mock.instances[0],
+      jest.mocked(CommentRendererImpl).mock.instances[0],
       jest.mocked(CommentUpserterImpl).mock.instances[0],
     )
 

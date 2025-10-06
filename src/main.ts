@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 
+import {CommentRendererImpl} from './comment-renderer'
 import {CommentUpserterImpl} from './comment-upserter'
 import {ConfigurationReaderImpl} from './configuration-reader'
 import {FilesChangedReaderImpl} from './files-changed-reader'
@@ -14,10 +15,12 @@ export async function run(): Promise<void> {
 
     const configurationReader = new ConfigurationReaderImpl(octokitRest)
     const filesChangedReader = new FilesChangedReaderImpl(octokit)
+    const commentRenderer = new CommentRendererImpl()
     const commentUpserter = new CommentUpserterImpl(octokitRest)
     const runner = new Runner(
       configurationReader,
       filesChangedReader,
+      commentRenderer,
       commentUpserter,
     )
     runner.run(github.context)
