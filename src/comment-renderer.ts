@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import Handlebars from 'handlebars'
 import markdownEscape from 'markdown-escape'
 
@@ -50,6 +51,12 @@ export class CommentRendererImpl implements CommentRenderer {
     rules: MatchedRule[],
     commentConfiguration?: CommentConfiguration,
   ): string {
+    if (commentConfiguration?.preamble || commentConfiguration?.epilogue) {
+      core.warning(
+        'The preamble and epilogue options in commentConfiguration are deprecated. Use template instead.',
+      )
+    }
+
     const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
     const context: TemplateContext = {
       matchedRules: rules,

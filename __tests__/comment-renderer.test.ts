@@ -1,7 +1,10 @@
-import {beforeEach, describe, expect, it} from '@jest/globals'
+import * as core from '@actions/core'
+import {beforeEach, describe, expect, it, jest} from '@jest/globals'
 import dedent from 'dedent'
 
 import {CommentRendererImpl} from '../src/comment-renderer'
+
+jest.mock('@actions/core')
 
 describe('CommentRendererImpl', () => {
   let renderer: CommentRendererImpl
@@ -113,6 +116,21 @@ describe('CommentRendererImpl', () => {
       `
 
       expect(renderer.render(rules, {template})).toBe(expectedComment)
+    })
+
+    it.each(['preamble', 'epilogue'])(
+      'logs a warning when using the %s option',
+      option => {
+        renderer.render(rules, {[option]: 'Testing'})
+        expect(core.warning).toHaveBeenCalledWith(
+          'The preamble and epilogue options in commentConfiguration are deprecated. Use template instead.',
+        )
+      },
+    )
+
+    it('does not log a warning when preamble or epilogue is not provided', () => {
+      renderer.render(rules, {})
+      expect(core.warning).toHaveBeenCalledTimes(0)
     })
   })
 })
