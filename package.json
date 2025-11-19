@@ -6,7 +6,7 @@
     "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint .",
-    "test": "jest --coverage --collectCoverageFrom 'src/**/*.ts'",
+    "test": "jest --coverage",
     "all": "npm run build && npm run format && npm run lint && npm test",
     "ci": "npm run build && npm run format-check && npm run lint && npm test"
   },
