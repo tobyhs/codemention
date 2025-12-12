@@ -14,7 +14,7 @@ runs:
     # because hashFiles only works on files inside the workspace.
     - run: cp ${{ github.action_path }}/package-lock.json codemention-package-lock.json
       shell: bash
-    - uses: actions/cache@v4
+    - uses: actions/cache@v5
       id: cache-node-modules
       with:
         path: ${{ github.action_path }}/node_modules
