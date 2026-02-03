@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
+import {Api} from '@octokit/plugin-rest-endpoint-methods'
 
 import {FOOTER} from './comment-renderer'
 import {Repo} from './github-types'
@@ -29,7 +29,7 @@ export class CommentUpserterImpl implements CommentUpserter {
   /**
    * @param octokitRest - GitHub REST API client
    */
-  constructor(private readonly octokitRest: RestEndpointMethods) {}
+  constructor(private readonly octokitRest: Api['rest']) {}
 
   /** @override */
   async upsert(

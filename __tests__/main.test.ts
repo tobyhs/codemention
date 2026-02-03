@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {GitHub} from '@actions/github/lib/utils'
 import {beforeEach, describe, expect, it, jest} from '@jest/globals'
-import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
+import {Api} from '@octokit/plugin-rest-endpoint-methods'
 import {randomUUID} from 'crypto'
 import {mockDeep} from 'jest-mock-extended'
 
@@ -25,7 +25,7 @@ jest.mock('../src/runner')
 describe('run', () => {
   const githubToken = randomUUID()
   let octokit: InstanceType<typeof GitHub>
-  let octokitRest: RestEndpointMethods
+  let octokitRest: Api['rest']
 
   beforeEach(() => {
     jest.mocked(core).getInput.mockImplementation(input => {

@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
+import {Api} from '@octokit/plugin-rest-endpoint-methods'
 import * as yaml from 'js-yaml'
 
 import {Configuration} from './configuration'
@@ -23,7 +23,7 @@ export class ConfigurationReaderImpl implements ConfigurationReader {
   /**
    * @param octokitRest - GitHub REST API client
    */
-  constructor(private readonly octokitRest: RestEndpointMethods) {}
+  constructor(private readonly octokitRest: Api['rest']) {}
 
   /** @override */
   async read(repo: Repo, ref: string): Promise<Configuration> {

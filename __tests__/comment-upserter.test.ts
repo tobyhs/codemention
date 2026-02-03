@@ -1,6 +1,8 @@
 import {beforeEach, describe, expect, it} from '@jest/globals'
-import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
-import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
+import {
+  Api,
+  RestEndpointMethodTypes,
+} from '@octokit/plugin-rest-endpoint-methods'
 import {MockProxy, mockDeep} from 'jest-mock-extended'
 
 import {FOOTER} from '../src/comment-renderer'
@@ -9,11 +11,11 @@ import {Repo} from '../src/github-types'
 import {deepEqualsMatch} from './matchers'
 
 describe('CommentUpserterImpl', () => {
-  let issuesMock: MockProxy<RestEndpointMethods['issues']>
+  let issuesMock: MockProxy<Api['rest']['issues']>
   let upserter: CommentUpserterImpl
 
   beforeEach(() => {
-    const octokitRestMock = mockDeep<RestEndpointMethods>()
+    const octokitRestMock = mockDeep<Api['rest']>()
     issuesMock = octokitRestMock.issues
     upserter = new CommentUpserterImpl(octokitRestMock)
   })

@@ -1,4 +1,4 @@
-import {Context} from '@actions/github/lib/context'
+import * as github from '@actions/github'
 import {beforeEach, describe, expect, it} from '@jest/globals'
 import {PullRequest} from '@octokit/webhooks-types/schema.d'
 import * as fs from 'fs'
@@ -14,6 +14,8 @@ import {FilesChangedReader} from '../src/files-changed-reader'
 import {Repo} from '../src/github-types'
 import Runner from '../src/runner'
 import {deepEqualsMatch} from './matchers'
+
+type Context = typeof github.context
 
 describe('Runner', () => {
   let configurationReader: MockProxy<ConfigurationReader>

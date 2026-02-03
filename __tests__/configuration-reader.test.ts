@@ -1,6 +1,8 @@
 import {beforeEach, describe, expect, it} from '@jest/globals'
-import {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods'
-import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types.d'
+import {
+  Api,
+  RestEndpointMethodTypes,
+} from '@octokit/plugin-rest-endpoint-methods'
 import * as fs from 'fs'
 import {MockProxy, mockDeep} from 'jest-mock-extended'
 import * as yaml from 'js-yaml'
@@ -12,11 +14,11 @@ import {Repo} from '../src/github-types'
 import {deepEqualsMatch} from './matchers'
 
 describe('ConfigurationReaderImpl', () => {
-  let reposMock: MockProxy<RestEndpointMethods['repos']>
+  let reposMock: MockProxy<Api['rest']['repos']>
   let reader: ConfigurationReaderImpl
 
   beforeEach(() => {
-    const octokitRest = mockDeep<RestEndpointMethods>()
+    const octokitRest = mockDeep<Api['rest']>()
     reposMock = octokitRest.repos
     reader = new ConfigurationReaderImpl(octokitRest)
   })

@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {Context} from '@actions/github/lib/context'
+import * as github from '@actions/github'
 import {PullRequestEvent} from '@octokit/webhooks-types/schema.d'
 import micromatch from 'micromatch'
 
@@ -30,7 +30,7 @@ export default class Runner {
    *
    * @param context - context of the GitHub action
    */
-  async run(context: Context): Promise<void> {
+  async run(context: typeof github.context): Promise<void> {
     const {repo} = context
     const event = context.payload as PullRequestEvent
     const pullRequest = event.pull_request
