@@ -40,7 +40,7 @@ describe('ConfigurationReaderImpl', () => {
 
     it('returns configuration from .github/codemention.yml', async () => {
       const fileContents = fs.readFileSync(
-        path.join(__dirname, 'fixtures', 'codemention.yml'),
+        path.join(import.meta.dirname, 'fixtures', 'codemention.yml'),
         'utf8',
       )
       const data = {content: Buffer.from(fileContents).toString('base64')}

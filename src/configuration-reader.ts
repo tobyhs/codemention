@@ -2,8 +2,8 @@ import * as core from '@actions/core'
 import {Api} from '@octokit/plugin-rest-endpoint-methods'
 import * as yaml from 'js-yaml'
 
-import {Configuration} from './configuration'
-import {Repo} from './github-types'
+import {Configuration} from './configuration.js'
+import {Repo} from './github-types.js'
 
 /**
  * @see {@link read}

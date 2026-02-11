@@ -1,2 +1,2 @@
-const main = require('./lib/main')
-main.run()
+import {run} from './lib/main.js'
+await run()

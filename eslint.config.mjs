@@ -61,7 +61,13 @@ export default defineConfig([
       'eslint-comments/no-use': 'off',
       'import/no-namespace': 'off',
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'error',
+
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+        },
+      ],
 
       '@typescript-eslint/explicit-member-accessibility': [
         'error',

@@ -1,11 +1,11 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 
-import {CommentRendererImpl} from './comment-renderer'
-import {CommentUpserterImpl} from './comment-upserter'
-import {ConfigurationReaderImpl} from './configuration-reader'
-import {FilesChangedReaderImpl} from './files-changed-reader'
-import Runner from './runner'
+import {CommentRendererImpl} from './comment-renderer.js'
+import {CommentUpserterImpl} from './comment-upserter.js'
+import {ConfigurationReaderImpl} from './configuration-reader.js'
+import {FilesChangedReaderImpl} from './files-changed-reader.js'
+import Runner from './runner.js'
 
 export async function run(): Promise<void> {
   try {

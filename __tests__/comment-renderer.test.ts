@@ -1,13 +1,14 @@
-import * as core from '@actions/core'
 import {beforeEach, describe, expect, it, jest} from '@jest/globals'
 import dedent from 'dedent'
 
-import {CommentRendererImpl} from '../src/comment-renderer'
+import * as core from './moduleMocks/core'
+jest.unstable_mockModule('@actions/core', () => core)
 
-jest.mock('@actions/core')
+import {CommentRenderer} from '../src/comment-renderer'
+const {CommentRendererImpl} = await import('../src/comment-renderer')
 
 describe('CommentRendererImpl', () => {
-  let renderer: CommentRendererImpl
+  let renderer: CommentRenderer
 
   beforeEach(() => {
     renderer = new CommentRendererImpl()

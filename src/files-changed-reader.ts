@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import {GitHub} from '@actions/github/lib/utils'
 
-import {Repo} from './github-types'
+import {Repo} from './github-types.js'
 
 /**
  * @see {@link read}

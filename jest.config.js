@@ -1,11 +1,14 @@
 export default {
+  preset: 'ts-jest',
   clearMocks: true,
   moduleFileExtensions: ['js', 'ts'],
+  extensionsToTreatAsEsm: ['.ts'],
+  resolver: 'ts-jest-resolver',
   testMatch: ['**/*.test.ts'],
+  testPathIgnorePatterns: ['/node_modules/'],
   transform: {
-    '^.+\\.[jt]s$': 'ts-jest',
+    '^.+\\.ts$': ['ts-jest', {tsconfig: 'tsconfig.json', useESM: true}],
   },
-  transformIgnorePatterns: ['/node_modules/(?!(@octokit|before-after-hook|universal-user-agent)/)'],
   verbose: true,
   collectCoverageFrom: ['src/**/*.ts'],
   coverageThreshold: {

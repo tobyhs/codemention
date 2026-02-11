@@ -1,4 +1,4 @@
-import {MentionRule} from './configuration'
+import {MentionRule} from './configuration.js'
 
 /**
  * A MentionRule that was matched to some files changed in a pull request

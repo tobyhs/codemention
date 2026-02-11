@@ -1,12 +1,12 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {PullRequestEvent} from '@octokit/webhooks-types/schema.d'
+import {PullRequestEvent} from '@octokit/webhooks-types'
 import micromatch from 'micromatch'
 
-import {CommentRenderer} from './comment-renderer'
-import {CommentUpserter} from './comment-upserter'
-import {ConfigurationReader} from './configuration-reader'
-import {FilesChangedReader} from './files-changed-reader'
+import {CommentRenderer} from './comment-renderer.js'
+import {CommentUpserter} from './comment-upserter.js'
+import {ConfigurationReader} from './configuration-reader.js'
+import {FilesChangedReader} from './files-changed-reader.js'
 
 /**
  * @see {@link run}

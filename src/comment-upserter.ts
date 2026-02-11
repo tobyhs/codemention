@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
 import {Api} from '@octokit/plugin-rest-endpoint-methods'
 
-import {FOOTER} from './comment-renderer'
-import {Repo} from './github-types'
-import {MatchedRule} from './template-types'
+import {FOOTER} from './comment-renderer.js'
+import {Repo} from './github-types.js'
+import {MatchedRule} from './template-types.js'
 
 /**
  * @see {@link upsert}

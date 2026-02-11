@@ -31,7 +31,7 @@ describe('Runner', () => {
   let pullRequest: PullRequest
   const configuration: Configuration = yaml.load(
     fs.readFileSync(
-      path.join(__dirname, 'fixtures', 'codemention.yml'),
+      path.join(import.meta.dirname, 'fixtures', 'codemention.yml'),
       'utf8',
     ),
   ) as Configuration

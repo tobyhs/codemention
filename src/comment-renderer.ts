@@ -2,8 +2,8 @@ import * as core from '@actions/core'
 import Handlebars from 'handlebars'
 import markdownEscape from 'markdown-escape'
 
-import {CommentConfiguration} from './configuration'
-import {MatchedRule, Mention, TemplateContext} from './template-types'
+import {CommentConfiguration} from './configuration.js'
+import {MatchedRule, Mention, TemplateContext} from './template-types.js'
 
 export const FOOTER = '<!-- codemention header -->'
 
