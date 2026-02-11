@@ -1,2 +1,2 @@
-import {run} from './lib/main.js'
+import {run} from './dist/main.js'
 await run()

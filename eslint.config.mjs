@@ -21,7 +21,6 @@ export default defineConfig([
   globalIgnores([
     '**/coverage',
     '**/dist/',
-    '**/lib/',
     '**/node_modules/',
     '**/jest.config.js',
     'run.js',
