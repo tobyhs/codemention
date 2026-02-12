@@ -9,5 +9,5 @@ jobs:
     steps:
       - run: node --version
       - uses: actions/checkout@v6
-      - run: npm install
+      - run: npm ci
       - run: npm run ci
