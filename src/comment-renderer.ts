@@ -28,6 +28,9 @@ const DEFAULT_TEMPLATE = `{{preamble}}
 {{/if}}
 `
 
+const PREAMBLE_EPILOGUE_DEPRECATION_MSG =
+  'The preamble and epilogue options in commentConfiguration are deprecated. Use template instead.'
+
 /**
  * @see {@link render}
  */
@@ -51,10 +54,10 @@ export class CommentRendererImpl implements CommentRenderer {
     rules: MatchedRule[],
     commentConfiguration?: CommentConfiguration,
   ): string {
+    let warningMessage = ''
     if (commentConfiguration?.preamble || commentConfiguration?.epilogue) {
-      core.warning(
-        'The preamble and epilogue options in commentConfiguration are deprecated. Use template instead.',
-      )
+      core.warning(PREAMBLE_EPILOGUE_DEPRECATION_MSG)
+      warningMessage = `\nWarning: ${PREAMBLE_EPILOGUE_DEPRECATION_MSG}\n`
     }
 
     const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
@@ -67,7 +70,7 @@ export class CommentRendererImpl implements CommentRenderer {
     const comment = Handlebars.compile(template, {noEscape: true})(context, {
       helpers: HANDLEBARS_HELPERS,
     })
-    return `${comment}${FOOTER}`
+    return `${comment}${warningMessage}${FOOTER}`
   }
 
   private createMentionsList(rules: MatchedRule[]): Mention[] {

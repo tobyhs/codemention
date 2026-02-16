@@ -55,6 +55,8 @@ describe('CommentRendererImpl', () => {
         | .github/\*\*<br>spec/\*.rb | @ci |
 
         > [CodeMention](https://github.com/tobyhs/codemention)
+
+        Warning: The preamble and epilogue options in commentConfiguration are deprecated. Use template instead.
         <!-- codemention header -->
       `
 
