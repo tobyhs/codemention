@@ -7,7 +7,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - run: node --version
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: npm
       - run: npm ci
       - run: npm run ci

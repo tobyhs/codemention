@@ -10,24 +10,30 @@ inputs:
 runs:
   using: composite
   steps:
-    # We need to copy codemention's package-lock.json into the workspace
-    # because hashFiles only works on files inside the workspace.
-    - run: cp ${{ github.action_path }}/package-lock.json codemention-package-lock.json
+    # Copying the action into the workspace makes things more convenient
+    # because some things don't work outside the workspace (actions/setup-node
+    # resolves the node-version-file input relative to the workspace; hashFiles
+    # only works on files inside the workspace).
+    - run: cp -r ${{ github.action_path }} codemention
       shell: bash
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: codemention/.node-version
+        package-manager-cache: false
     - uses: actions/cache@v5
       id: cache-node-modules
       with:
-        path: ${{ github.action_path }}/node_modules
-        key: codemention-npm-${{ hashFiles('codemention-package-lock.json') }}
-    - run: npm install
-      working-directory: ${{ github.action_path }}
+        path: codemention/node_modules
+        key: codemention-npm-${{ hashFiles('codemention/package-lock.json') }}
+    - run: npm ci
+      working-directory: codemention
       shell: bash
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
     - run: npm run build
-      working-directory: ${{ github.action_path }}
+      working-directory: codemention
       shell: bash
     - run: node run.js
-      working-directory: ${{ github.action_path }}
+      working-directory: codemention
       shell: bash
       env:
         INPUT_GITHUBTOKEN: "${{ inputs.githubToken }}"
