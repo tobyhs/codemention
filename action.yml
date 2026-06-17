@@ -14,26 +14,23 @@ runs:
     # because some things don't work outside the workspace (actions/setup-node
     # resolves the node-version-file input relative to the workspace; hashFiles
     # only works on files inside the workspace).
-    - run: cp -r ${{ github.action_path }} codemention
+    - run: cp -r "${{ github.action_path }}/." .
       shell: bash
     - uses: actions/setup-node@v6
       with:
-        node-version-file: codemention/.node-version
+        node-version-file: .node-version
         package-manager-cache: false
     - uses: actions/cache@v5
       id: cache-node-modules
       with:
-        path: codemention/node_modules
-        key: codemention-npm-${{ hashFiles('codemention/package-lock.json') }}
+        path: node_modules
+        key: codemention-npm-${{ hashFiles('.node-version', 'package-lock.json') }}
     - run: npm ci
-      working-directory: codemention
       shell: bash
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
     - run: npm run build
-      working-directory: codemention
       shell: bash
     - run: node run.js
-      working-directory: codemention
       shell: bash
       env:
         INPUT_GITHUBTOKEN: "${{ inputs.githubToken }}"
