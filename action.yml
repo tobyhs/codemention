@@ -14,7 +14,9 @@ runs:
     # because some things don't work outside the workspace (actions/setup-node
     # resolves the node-version-file input relative to the workspace; hashFiles
     # only works on files inside the workspace).
-    - run: cp -r "${{ github.action_path }}/." .
+    - name: Copy action into workspace
+      run: |
+        [ "$(realpath '${{ github.action_path }}')" = "$(realpath '${{ github.workspace }}')" ] || cp -r "${{ github.action_path }}/." .
       shell: bash
     - uses: actions/setup-node@v6
       with:
