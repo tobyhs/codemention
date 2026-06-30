@@ -20,20 +20,6 @@ export interface CommentConfiguration {
    * you can use.
    */
   template?: string
-
-  /**
-   * Comment content to print above matching rules table
-   *
-   * @deprecated Use the template property
-   */
-  preamble?: string
-
-  /**
-   * Comment content to print below matching rules table
-   *
-   * @deprecated Use the template property
-   */
-  epilogue?: string
 }
 
 /**

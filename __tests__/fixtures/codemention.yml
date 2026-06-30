@@ -1,6 +1,6 @@
 commentConfiguration:
-  preamble: 'testing preamble'
-  epilogue: 'testing epilogue'
+  template: Some template
+
 rules:
   - patterns: ['config/**']
     mentions: ['sysadmin', 'testlogin']

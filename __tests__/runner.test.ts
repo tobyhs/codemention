@@ -102,10 +102,7 @@ describe('Runner', () => {
       commentRenderer.render
         .calledWith(
           deepEqualsMatch(matchedRules),
-          deepEqualsMatch({
-            preamble: 'testing preamble',
-            epilogue: 'testing epilogue',
-          }),
+          deepEqualsMatch({template: 'Some template'}),
         )
         .mockReturnValue(comment)
 

@@ -28,18 +28,4 @@ export interface TemplateContext {
 
   /** GitHub users/teams that should be mentioned including metadata */
   mentions: Mention[]
-
-  /**
-   * content to print above matching rules table
-   *
-   * @deprecated
-   */
-  preamble: string | undefined
-
-  /**
-   * content to print below matching rules table
-   *
-   * @deprecated
-   */
-  epilogue: string | undefined
 }

@@ -42,27 +42,6 @@ describe('CommentRendererImpl', () => {
       expect(renderer.render(rules)).toBe(expectedComment)
     })
 
-    it('renders a comment with preamble and epilogue', () => {
-      const commentConfiguration = {
-        preamble: 'Added you as a subscriber.',
-        epilogue: '> [CodeMention](https://github.com/tobyhs/codemention)',
-      }
-      const expectedComment = dedent`
-        Added you as a subscriber.
-        | File Patterns | Mentions |
-        | - | - |
-        | db/migrate/\*\* | @cto, @dba |
-        | .github/\*\*<br>spec/\*.rb | @ci |
-
-        > [CodeMention](https://github.com/tobyhs/codemention)
-
-        Warning: The preamble and epilogue options in commentConfiguration are deprecated. Use template instead.
-        <!-- codemention header -->
-      `
-
-      expect(renderer.render(rules, commentConfiguration)).toBe(expectedComment)
-    })
-
     it('renders a comment with a custom template with matchedRules', () => {
       const template = dedent`
         # CodeMention
@@ -119,21 +98,6 @@ describe('CommentRendererImpl', () => {
       `
 
       expect(renderer.render(rules, {template})).toBe(expectedComment)
-    })
-
-    it.each(['preamble', 'epilogue'])(
-      'logs a warning when using the %s option',
-      option => {
-        renderer.render(rules, {[option]: 'Testing'})
-        expect(core.warning).toHaveBeenCalledWith(
-          'The preamble and epilogue options in commentConfiguration are deprecated. Use template instead.',
-        )
-      },
-    )
-
-    it('does not log a warning when preamble or epilogue is not provided', () => {
-      renderer.render(rules, {})
-      expect(core.warning).toHaveBeenCalledTimes(0)
     })
   })
 })

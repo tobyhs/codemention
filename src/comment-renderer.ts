@@ -1,4 +1,3 @@
-import * as core from '@actions/core'
 import Handlebars from 'handlebars'
 import markdownEscape from 'markdown-escape'
 
@@ -7,29 +6,20 @@ import {MatchedRule, Mention, TemplateContext} from './template-types.js'
 
 export const FOOTER = '<!-- codemention header -->'
 
-const DEFAULT_COMMENT_PREAMBLE =
-  '[CodeMention](https://github.com/tobyhs/codemention):'
-
 const HANDLEBARS_HELPERS = {
   markdownEscape(text: string): string {
     return markdownEscape(text, ['slashes'])
   },
 }
 
-const DEFAULT_TEMPLATE = `{{preamble}}
+const DEFAULT_TEMPLATE = `[CodeMention](https://github.com/tobyhs/codemention):
 | File Patterns | Mentions |
 | - | - |
 {{#each matchedRules}}
 | {{#each patterns}}{{markdownEscape this}}{{#unless @last}}<br>{{/unless}}{{/each}} | {{#each mentions}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}} |
 {{/each}}
 
-{{#if epilogue}}
-{{epilogue}}
-{{/if}}
 `
-
-const PREAMBLE_EPILOGUE_DEPRECATION_MSG =
-  'The preamble and epilogue options in commentConfiguration are deprecated. Use template instead.'
 
 /**
  * @see {@link render}
@@ -54,23 +44,15 @@ export class CommentRendererImpl implements CommentRenderer {
     rules: MatchedRule[],
     commentConfiguration?: CommentConfiguration,
   ): string {
-    let warningMessage = ''
-    if (commentConfiguration?.preamble || commentConfiguration?.epilogue) {
-      core.warning(PREAMBLE_EPILOGUE_DEPRECATION_MSG)
-      warningMessage = `\nWarning: ${PREAMBLE_EPILOGUE_DEPRECATION_MSG}\n`
-    }
-
     const template = commentConfiguration?.template ?? DEFAULT_TEMPLATE
     const context: TemplateContext = {
       matchedRules: rules,
       mentions: this.createMentionsList(rules),
-      preamble: commentConfiguration?.preamble ?? DEFAULT_COMMENT_PREAMBLE,
-      epilogue: commentConfiguration?.epilogue,
     }
     const comment = Handlebars.compile(template, {noEscape: true})(context, {
       helpers: HANDLEBARS_HELPERS,
     })
-    return `${comment}${warningMessage}${FOOTER}`
+    return `${comment}${FOOTER}`
   }
 
   private createMentionsList(rules: MatchedRule[]): Mention[] {
