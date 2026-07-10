@@ -20,7 +20,7 @@ runs:
       # then action.yml should exist because the action already copied itself
       # to the workspace.
       run: |
-        [ -f action.yml ] || cp -r "${GITHUB_ACTION_PATH}/." .
+        [ -f action.yml ] || cp -r "${GITHUB_ACTION_PATH}/../." .
       shell: bash
     - uses: actions/setup-node@v6
       with:
