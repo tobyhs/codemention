@@ -1,0 +1,16 @@
+name: post-release
+
+on:
+  release:
+    types:
+      - released
+
+jobs:
+  update_major_version_tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/publish-action@v0.4.0
+        with:
+          source-tag: ${{ github.event.release.tag_name }}
