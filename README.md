@@ -40,9 +40,26 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: tobyhs/codemention@v1
+      - uses: tobyhs/codemention@v2
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Due to GitHub Actions [access restrictions on caching](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching#restrictions-for-accessing-a-cache), a pull request typically cannot save a cache that other pull requests can use. To work around this, you can create a workflow that saves the dpendency cache in the default branch scope with a file like the following (replace `main` with your default branch):
+```yaml
+name: 'codemention: populate cache'
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  codemention_populate_cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: tobyhs/codemention/populate-cache@v2
 ```
 
 ### Team Mentions
