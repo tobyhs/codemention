@@ -10,26 +10,12 @@ inputs:
 runs:
   using: composite
   steps:
-    # Copying the action into the workspace makes things more convenient
-    # because some things don't work outside the workspace (actions/setup-node
-    # resolves the node-version-file input relative to the workspace; hashFiles
-    # only works on files inside the workspace).
     - name: Copy action into workspace
       run: |
-        [ "$(realpath '${{ github.action_path }}')" = "$(realpath '${{ github.workspace }}')" ] || cp -r "${{ github.action_path }}/." .
+        [ "$(realpath "$GITHUB_ACTION_PATH")" = "$(realpath "$GITHUB_WORKSPACE")" ] || cp -r "${GITHUB_ACTION_PATH}/." .
       shell: bash
-    - uses: actions/setup-node@v6
-      with:
-        node-version-file: .node-version
-        package-manager-cache: false
-    - uses: actions/cache@v6
-      id: cache-node-modules
-      with:
-        path: node_modules
-        key: codemention-npm-${{ hashFiles('.node-version', 'package-lock.json') }}
-    - run: npm ci
-      shell: bash
-      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+    - name: Install dependencies
+      uses: ./populate-cache
     - run: npm run build
       shell: bash
     - run: node run.js
