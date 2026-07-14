@@ -22,7 +22,7 @@ runs:
       run: |
         [ -f action.yml ] || cp -r "${GITHUB_ACTION_PATH}/../." .
       shell: bash
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@v7
       with:
         node-version-file: .node-version
         package-manager-cache: false
