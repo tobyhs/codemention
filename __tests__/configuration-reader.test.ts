@@ -11,7 +11,6 @@ import * as path from 'path'
 import {Configuration} from '../src/configuration'
 import {ConfigurationReaderImpl} from '../src/configuration-reader'
 import {Repo} from '../src/github-types'
-import {deepEqualsMatch} from './matchers'
 
 describe('ConfigurationReaderImpl', () => {
   let reposMock: MockProxy<Api['rest']['repos']>
@@ -32,9 +31,7 @@ describe('ConfigurationReaderImpl', () => {
         data,
       } as RestEndpointMethodTypes['repos']['getContent']['response']
       reposMock.getContent
-        .calledWith(
-          deepEqualsMatch({...repo, path: '.github/codemention.yml', ref}),
-        )
+        .calledWith({...repo, path: '.github/codemention.yml', ref})
         .mockResolvedValue(response)
     }
 

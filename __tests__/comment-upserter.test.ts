@@ -8,7 +8,6 @@ import {MockProxy, mockDeep} from 'jest-mock-extended'
 import {FOOTER} from '../src/comment-renderer'
 import {CommentUpserterImpl} from '../src/comment-upserter'
 import {Repo} from '../src/github-types'
-import {deepEqualsMatch} from './matchers'
 
 describe('CommentUpserterImpl', () => {
   let issuesMock: MockProxy<Api['rest']['issues']>
@@ -47,7 +46,7 @@ describe('CommentUpserterImpl', () => {
       } as RestEndpointMethodTypes['issues']['listComments']['response']
 
       issuesMock.listComments
-        .calledWith(deepEqualsMatch({...repo, issue_number: pullNumber}))
+        .calledWith({...repo, issue_number: pullNumber})
         .mockResolvedValue(listResponse)
     }
 

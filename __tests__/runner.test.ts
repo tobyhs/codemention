@@ -13,7 +13,6 @@ import {ConfigurationReader} from '../src/configuration-reader'
 import {FilesChangedReader} from '../src/files-changed-reader'
 import {Repo} from '../src/github-types'
 import Runner from '../src/runner'
-import {deepEqualsMatch} from './matchers'
 
 type Context = typeof github.context
 
@@ -100,10 +99,7 @@ describe('Runner', () => {
       ]
       const comment = 'Test Comment'
       commentRenderer.render
-        .calledWith(
-          deepEqualsMatch(matchedRules),
-          deepEqualsMatch({template: 'Some template'}),
-        )
+        .calledWith(matchedRules, {template: 'Some template'})
         .mockReturnValue(comment)
 
       await runner.run(context)

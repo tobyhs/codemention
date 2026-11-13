@@ -15,7 +15,6 @@ import {
 
 import {FilesChangedReaderImpl} from '../src/files-changed-reader'
 import {Repo} from '../src/github-types'
-import {deepEqualsMatch} from './matchers'
 
 describe('FilesChangedReaderImpl', () => {
   let octokit: DeepMockProxy<InstanceType<typeof GitHub>>
@@ -59,7 +58,7 @@ describe('FilesChangedReaderImpl', () => {
       paginateFn
         .calledWith(
           octokit.rest.pulls.listFiles,
-          deepEqualsMatch({...repo, pull_number: prNumber, per_page: 100}),
+          {...repo, pull_number: prNumber, per_page: 100},
           mapFnMatcher,
         )
         .mockResolvedValue(expectedFilesChanged)
